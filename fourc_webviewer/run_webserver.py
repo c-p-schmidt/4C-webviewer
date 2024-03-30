@@ -2,13 +2,13 @@
 #                               IMPORT SECTION                                 #
 # ------------------------------------------------------------------------------#
 
-import gui_utils as gui
-from input_file_utils.dat_file_visualization import (
+import fourc_webviewer.gui_utils as gui
+from fourc_webviewer.input_file_utils.dat_file_visualization import (
     convert_to_vtu,
     function_plot_figure,
     return_function_from_funct_string,
 )
-from input_file_utils.read_dat_file import (
+from fourc_webviewer.input_file_utils.read_dat_file import (
     analyze_functions,
     find_all_linked_materials,
     get_all_material_line_indices_for_clonematmmap_line,
@@ -16,15 +16,18 @@ from input_file_utils.read_dat_file import (
     mat_specifiers,
     read_dat_file,
 )
-from input_file_utils.write_dat_file import write_dat_file
+from fourc_webviewer.input_file_utils.write_dat_file import write_dat_file
 import os
 from pathlib import Path
 import re
 import tempfile
 from trame.app import get_server
 from vtkmodules.vtkCommonDataModel import vtkDataObject
-import vturender as vtu
+import fourc_webviewer.vturender as vtu
 
+DEFAULT_INPUT_FILE = str(
+    Path(__file__).parents[1] / "default_files" / "default_file.dat"
+)
 
 # ------------------------------------------------------------------------------#
 #                              COMMON SERVER SETUP                              #
@@ -36,7 +39,10 @@ STATE, CTRL = SERVER.state, SERVER.controller
 # STATE contains all the state variables, CTRL contains all the control functions / elements, UI
 
 
-def run_webviewer():
+def run_webviewer(dat_file=None):
+
+    if dat_file is None:
+        dat_file = DEFAULT_INPUT_FILE
 
     # create temporary directory
     temp_dir_object = tempfile.TemporaryDirectory()
@@ -49,20 +55,13 @@ def run_webviewer():
     #                         DEFAULT DAT FILE LOADING                             #
     # ------------------------------------------------------------------------------#
 
-    # default dat file
-    default_dat_path = os.path.join(
-        os.path.dirname(__file__), "default_files", "default_file.dat"
-    )
-
     # global dat and vtu file paths
-    default_vtu_path = convert_to_vtu(default_dat_path, temp_dir)
+    default_vtu_path = convert_to_vtu(dat_file, temp_dir)
 
     # read dat file content
-    default_dat_file_content = read_dat_file(default_dat_path)
+    default_dat_file_content = read_dat_file(dat_file)
 
-    STATE_initialization(
-        temp_dir, default_dat_path, default_vtu_path, default_dat_file_content
-    )
+    STATE_initialization(temp_dir, dat_file, default_vtu_path, default_dat_file_content)
 
     # create reader and update it to read the current vtu file
     reader = vtu.create_vtu_reader()

@@ -13,23 +13,27 @@ This is already rather nice because we only have acceptable dependencies, i.e. o
 ```
 conda create --name <name-of-environment> python=3.10
 conda activate <name-of-environment>
+```
 
-pip install lnmmeshio
+## How to install the 4C-webviewer
 
-pip install trame
-pip install trame-vuetify trame-vtk
-pip install trame-components
-pip install --upgrade trame-plotly
-
-pip install plotly
-pip install pandas
-pip install vtk
+Go to the source directory and in the activated environment run
+```
+pip install -e .
 ```
 
 ## How to run the 4C-Webviewer
 
-Change to the directory of the repo. Activate the created conda environment and run
+To start the webviewer, in the conda environment run:
+```
+fourc_webviewer
+```
+To directly open a dat file use
+```
+fourc_webviewer --dat_file <path-to-file>
+```
 
+Alternatively change to the directory of the repo. Activate the created conda environment and run
 ```
 python main.py
 ```
