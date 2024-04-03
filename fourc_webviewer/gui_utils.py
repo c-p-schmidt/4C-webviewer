@@ -1,4 +1,4 @@
-from input_file_utils.dat_file_visualization import function_plot_figure
+from fourc_webviewer.input_file_utils.dat_file_visualization import function_plot_figure
 
 import plotly
 

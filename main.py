@@ -1,4 +1,4 @@
-import run_webserver as webserver
+from fourc_webviewer.cli_utils import main
 
 if __name__ == "__main__":
-    webserver.run_webviewer()
+    main()

@@ -4,7 +4,7 @@ import os
 import plotly.express as px
 import re
 
-from input_file_utils.read_dat_file import (
+from fourc_webviewer.input_file_utils.read_dat_file import (
     add_dat_file_data_to_dis,
     validate_dat_file_path,
 )

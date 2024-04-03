@@ -4,7 +4,7 @@
 import os
 import re
 
-from python_utils import list_is_iterable
+from fourc_webviewer.python_utils import list_is_iterable
 
 
 def add_dat_file_data_to_dis(dis):
