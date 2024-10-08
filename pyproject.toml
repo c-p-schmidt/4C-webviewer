@@ -16,5 +16,5 @@ fourc_webviewer = "fourc_webviewer.cli_utils:main"
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
 
-[tool.setuptools.packages.find]
-include = ["*"]
+[tool.setuptools]
+package-dir = { "" = "src" }

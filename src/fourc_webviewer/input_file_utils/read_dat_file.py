@@ -5,6 +5,7 @@ import os
 import re
 
 from fourc_webviewer.python_utils import list_is_iterable
+from pathlib import Path
 
 
 def add_dat_file_data_to_dis(dis):
@@ -564,13 +565,9 @@ def sort_conditions(src_cond_entity_list, src_cond_type_list, src_cond_context_l
 
 def validate_dat_file_path(dat_file_path):
     # Validate the file path: file has to exist and end with ".dat"
-    if not dat_file_path.endswith(".dat"):
-        raise Exception("Provided file does not end with .dat!")
+    dat_file_path = Path(dat_file_path)
+    if dat_file_path.suffix != ".dat":
+        raise Exception(f"Provided file {dat_file_path} does not end with .dat!")
 
-    if not os.path.exists(dat_file_path):
+    if not dat_file_path.is_file():
         raise Exception("Provided file does not exist!")
-
-
-if __name__ == "__main__":
-    ...
-    # no need to implement anything here, as the method can only be called from within the main.py

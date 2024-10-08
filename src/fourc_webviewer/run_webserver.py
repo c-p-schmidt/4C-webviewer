@@ -24,10 +24,7 @@ import tempfile
 from trame.app import get_server
 from vtkmodules.vtkCommonDataModel import vtkDataObject
 import fourc_webviewer.vturender as vtu
-
-DEFAULT_INPUT_FILE = str(
-    Path(__file__).parents[1] / "default_files" / "default_file.dat"
-)
+from fourc_webviewer_default_files import DEFAULT_INPUT_FILE
 
 # ------------------------------------------------------------------------------#
 #                              COMMON SERVER SETUP                              #
@@ -42,7 +39,7 @@ STATE, CTRL = SERVER.state, SERVER.controller
 def run_webviewer(dat_file=None):
 
     if dat_file is None:
-        dat_file = DEFAULT_INPUT_FILE
+        dat_file = str(DEFAULT_INPUT_FILE)
 
     # create temporary directory
     temp_dir_object = tempfile.TemporaryDirectory()
