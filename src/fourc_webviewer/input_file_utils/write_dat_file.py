@@ -1,6 +1,4 @@
-# ------------------------------------------------------------------------------#
-#                       WRITE A DAT FILE FROM INPUT INFO                       #
-# ------------------------------------------------------------------------------#
+"""Dat file writer utils."""
 
 import math
 import re
@@ -214,8 +212,3 @@ def flatten_input_list(lst):
         else:
             flattened_list.append(item)
     return flattened_list
-
-
-if __name__ == "__main__":
-    ...
-    # no need to implement anything here, as the method can only be called from within the main.py
