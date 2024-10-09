@@ -1,7 +1,5 @@
-# ------------------------------------------------------------------------------#
-#                     READ AND SECTION A PROVIDED DAT FILE                     #
-# ------------------------------------------------------------------------------#
-import os
+"""Dat file reader utils."""
+
 import re
 
 from fourc_webviewer.python_utils import list_is_iterable

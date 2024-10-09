@@ -1,3 +1,5 @@
+"""Dat file visualization."""
+
 import lnmmeshio
 import numpy as np
 import os
@@ -12,12 +14,15 @@ from pathlib import Path
 
 
 def convert_to_vtu(dat_file_path, temp_dir):
-    # This function converts a given dat file into a corresponding vtu file
-    #   Input:
-    #       dat_file_path: string: full path to the dat file to be converted
-    #   Output:
-    #       vtu_file_path: full path of the converted file
+    """Convert dat file to vtu.
 
+    Args:
+        dat_file_path (str, Path): Path to dat file
+        temp_dir (str, Path): Temp directory
+
+    Returns:
+        str: Path to vtu file
+    """
     # define the vtu_file_path to have the same name as the dat file, but the its directory is in './temp_files'
     vtu_file_path = str(
         Path(temp_dir) / f"{os.path.splitext(os.path.basename(dat_file_path))[0]}.vtu"
@@ -36,6 +41,14 @@ def convert_to_vtu(dat_file_path, temp_dir):
 
 
 def function_plot_figure(state_data):
+    """Get function plot figure.
+
+    Args:
+        state_data (trame_server.core.Server): Trame server state
+
+    Returns:
+        plotly.graph_objects._figure.Figure: Figure to be plotted
+    """
     num_of_time_points = 1000  # number of discrete time points used for plotting
     data = {
         "t": np.linspace(0, state_data.MAX_TIME, num_of_time_points),
@@ -66,11 +79,14 @@ def function_plot_figure(state_data):
 
 
 def return_function_from_funct_string(funct_string):
-    # The function takes in the value of the funct string coming from a function and returns the parsed function
-    #   Input:
-    #       funct_string: string of the function, containing the variables t, x, y, z
-    #   Output:
-    #       return_funct: function of the mentioned arguments
+    """Create function from funct string.
+
+    Args:
+        funct_string (str): Funct definition
+
+    Returns:
+        callable: callable function of x, y, z, t
+    """
 
     def funct_using_eval(x, y, z, t):
         # defined functions to be replaced: <def_funct> becomes <np.funct>
@@ -101,7 +117,14 @@ def return_function_from_funct_string(funct_string):
     return np.frompyfunc(funct_using_eval, 4, 1)
 
 
-def to_vtu(dis, vtu_file: str, override=True, ascii=False):
+def to_vtu(dis, vtu_file: str, override=True):
+    """Discretization to vtu.
+
+    Args:
+        dis (lnmmeshio.Discretization): Discretization object
+        vtu_file (str): Path to vtu file
+        override (bool, optional): Overwrite existing file. Defaults to True
+    """
     add_dat_file_data_to_dis(dis)
 
     # write case file
@@ -111,12 +134,3 @@ def to_vtu(dis, vtu_file: str, override=True, ascii=False):
         file_format="vtu",
         override=override,
     )
-
-
-def validate_vtu_file_path(vtu_file_path):
-    # Validate the file path: file has to exist and end with ".vtu"
-    if not vtu_file_path.endswith(".dat"):
-        raise Exception("Provided file does not end with .dat!")
-
-    if not os.path.exists(vtu_file_path):
-        raise Exception("Provided file does not exist!")
