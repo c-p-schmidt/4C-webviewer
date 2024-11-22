@@ -38,22 +38,13 @@ def write_dat_file(
     #       geometry_lines: [<lines with geometry specific info>]; Example: ["-----------------------------------------------DNODE-NODE TOPOLOGY", "NODE    36 DNODE 1", "NODE    163 DNODE 1", ..., "-----------------------------------------------DLINE-NODE TOPOLOGY", "NODE    36 DLINE 1", "NODE    105 DLINE 1",...]
 
     # initialize lines_list, containing all the file lines
-    lines_list = ["//", "//"]
+    lines_list = []
 
     # number of characters for "===" and "---" lines
     num_of_chars = 100
 
     # line length for the category lines with <name     value>
     line_length = 60
-
-    # append title section
-    lines_list.append("=" * num_of_chars)
-    lines_list.append(
-        " " * math.floor((num_of_chars - len(title)) / 2)
-        + title
-        + " " * math.ceil((num_of_chars - len(title)) / 2)
-    )
-    lines_list.append("=" * num_of_chars)
 
     # append description section
     lines_list.append("-" * (num_of_chars - len("TITLE")) + "TITLE")

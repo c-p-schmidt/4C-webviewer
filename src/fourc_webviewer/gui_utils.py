@@ -62,10 +62,28 @@ def _bottom_sheet_info():
 
 def _bottom_sheet_export(server_controller):
     with vuetify.VBottomSheet(v_model=("EXPORT_MODE",), inset=True):
-        with vuetify.VCard(classes="text-center", height=150, title="Export"):
+        with vuetify.VCard(classes="text-center", height=250, title="Export"):
             with vuetify.VCardText():
                 vuetify.VTextField(
                     label="Export .dat file", v_model=("EXPORT_DAT_PATH",)
+                )
+                vuetify.VAlert(
+                   title="Click on <save> to export the changed .dat file under the entered path",
+                   type="info", 
+                   v_if  = ("EXPORT_STATUS == EXPORT_STATUS_POSSIB[0]", ),
+                   classes = "h-50"
+                )
+                vuetify.VAlert(
+                   title="Your file was exported correctly!",
+                   type="success",
+                   v_if  = ("EXPORT_STATUS == EXPORT_STATUS_POSSIB[1]", ),
+                   classes = "h-50"
+                )
+                vuetify.VAlert(
+                   title="There was a problem while trying to export! Check the entered path and the modified .dat file settings!",
+                   type="error",
+                   v_if  = ("EXPORT_STATUS == EXPORT_STATUS_POSSIB[2]", ),
+                   classes = "h-50"
                 )
         vuetify.VBtn(text="SAVE", color="primary", click=server_controller)
 

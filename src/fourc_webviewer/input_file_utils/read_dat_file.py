@@ -306,19 +306,6 @@ def read_dat_file(dat_file_path):
     )  # category variable -> used further down below for the sectioning of the file content
     while l < len(file_lines):
         match file_lines[l][0]:  # sectioning based on first character
-            case "=":  # get file title
-                curr_line_ind = l + 1
-                while curr_line_ind < len(file_lines):
-                    if file_lines[curr_line_ind][0] == "=":
-                        l = curr_line_ind + 1
-                        break
-                    else:
-                        file_title.append(file_lines[curr_line_ind])
-                        curr_line_ind += 1
-                        if curr_line_ind == len(file_lines):
-                            raise Exception(
-                                "The entire file was read without sectioning a file title"
-                            )
             case (
                 "-"
             ):  # Symbol indicates a new category -> The use of "-" as a bullet point in the file description is discussed below
@@ -519,6 +506,9 @@ def read_dat_file(dat_file_path):
 
     # take all lines from the geometry_categories and save them in a geometry_lines list
     geometry_lines = [l for l in file_lines[geometry_categories_indices[0] :]]
+
+    # add file name as a file title
+    file_title.append(Path(dat_file_path).name)
 
     return_dict = {
         "file_title": file_title,
