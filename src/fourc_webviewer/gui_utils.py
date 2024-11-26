@@ -6,14 +6,104 @@ CLIENT_TYPE = "vue3"
 if CLIENT_TYPE == "vue2":
     from trame.widgets import vuetify2 as vuetify
     from trame.ui.vuetify2 import SinglePageWithDrawerLayout
+    from trame_vuetify.widgets.vuetify import HtmlElement
 else:
     from trame.widgets import vuetify3 as vuetify
     from trame.ui.vuetify3 import SinglePageWithDrawerLayout
+    from trame_vuetify.widgets.vuetify3 import HtmlElement
 from trame.widgets import html, plotly, vtk
 
 
+class VFileInput(HtmlElement):
+    """Custom VFileInput element, since the one provided by trame does not currently support all relevant attributes, such as e.g. 'accept'.
+    """
+
+
+    def __init__(self, children=None, **kwargs):
+        super().__init__("v-file-input", children, **kwargs)
+        self._attr_names += [
+            "accept",
+            "append_icon",
+            "append_outer_icon",
+            "autofocus",
+            "background_color",
+            "chips",
+            "clear_icon",
+            "clearable",
+            "color",
+            "counter",
+            "counter_size_string",
+            "counter_string",
+            "counter_value",  # JS functions unimplemented
+            "dark",
+            "dense",
+            "disabled",
+            "error",
+            "error_count",
+            "error_messages",
+            "filled",
+            "flat",
+            "full_width",
+            "height",
+            "hide_details",
+            "hide_input",
+            "hide_spin_buttons",
+            "hint",
+            "id",
+            "label",
+            "light",
+            "loader_height",
+            "loading",
+            "messages",
+            "multiple",
+            "outlined",
+            "persistent_hint",
+            "persistent_placeholder",
+            "placeholder",
+            "prefix",
+            "prepend_icon",
+            "prepend_inner_icon",
+            "reverse",
+            "rounded",
+            "rules",
+            "shaped",
+            "show_size",
+            "single_line",
+            "small_chips",
+            "solo",
+            "solo_inverted",
+            "success",
+            "success_messages",
+            "suffix",
+            "truncate_length",
+            "type",
+            "validate_on_blur",
+            "value",
+        ]
+        self._event_names += [
+            "blur",
+            "change",
+            "click",
+            ("click_append", "click:append"),
+            ("click_append_outer", "click:append-outer"),
+            ("click_clear", "click:clear"),
+            ("click_prepend", "click:prepend"),
+            ("click_prepend_inner", "click:prepend-inner"),
+            "focus",
+            "input",
+            "keydown",
+            "mousedown",
+            "mouseup",
+            ("update_error", "update:error"),
+        ]
+
 def _toolbar(server_controller):
-    vuetify.VTextField(label=".dat file", v_model=("DAT_PATH",))
+    VFileInput(
+        label=".dat file", 
+        v_model=("INPUT_FILE",),
+        update_modelValue="flushState('INPUT_FILE')",
+        accept = ".dat"
+        )
     vuetify.VBtn(
         text="CONVERT",
         v_show=("VTU_PATH == ''",),

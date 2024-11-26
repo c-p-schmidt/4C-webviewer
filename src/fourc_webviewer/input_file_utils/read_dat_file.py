@@ -1,6 +1,8 @@
 """Dat file reader utils."""
 
 import re
+import os
+
 
 from fourc_webviewer.python_utils import list_is_iterable
 from pathlib import Path
@@ -53,14 +55,19 @@ def add_dat_file_data_to_dis(dis):
 
 
 def analyze_functions(function_item):
-    # This function analyzes a given function item and returns vectors of the
-    # function types, component names and their respective strings in each dimension
-    #   Input:
-    #       function_item in the form [[1,2],['COMPONENT 0 ...','COMPONENT 1 ...']]
-    #   Output:
-    #       funct_comp_names in the form [COMPONENT 0,1]
-    #       funct_types in the form ["SYMBOLIC_FUNCTION_OF_SPACE_TIME", "SYMBOLIC_FUNCTION_OF_SPACE_TIME"]
-    #       funct_strings in the form ["10.0*t*(x+y)", "310.0/x"]
+    """ Analyze a given function item and return vectors of the function types, component names and their respective strings in each dimension.
+
+    
+    Args:
+        function_item (list): function item in the form [[1,2],['COMPONENT 0 ...','COMPONENT 1 ...']].
+
+    Returns:
+        tuple:
+            - funct_comp_names (list): function component names in the form [COMPONENT 0,1].
+            - funct_types (list): function types in the form ["SYMBOLIC_FUNCTION_OF_SPACE_TIME", "SYMBOLIC_FUNCTION_OF_SPACE_TIME"].
+            - funct_strings (list): function strings in the form ["10.0*t*(x+y)", "310.0/x"].
+
+    """
 
     k = 0
     funct_comp_names = []
@@ -100,14 +107,16 @@ def analyze_functions(function_item):
 
 
 def find_all_linked_materials(material_number, material_items):
-    # RECURSIVE FUNCTION
-    # The function takes in a material number, and finds all linked materials to this material.
-    #   Input:
-    #       material number -> e.g. 1 for "MAT 1"
-    #       material_items -> e.g. [['MAT 1','MAT 2',...],
-    #                               [['MAT_MultiplicativeSp...ElastHyper', 'NUMMATEL', '1', 'MATIDSEL', '4', 'NUMFACINEL', '1', 'INELDEFGRADFACIDS', '5', 'DENS', '1.0', '2'],[...]...]]
-    #   Output:
-    #       list_of_line_indices_in_material_items: list of ints: containing the line indices in material_items corresponding to the found linked materials
+    """Find all materials linked with a material number recursively.
+
+    Args:
+        material_number (int): material number, e.g. 1 for "MAT 1".
+        material_items (list): all material items, e.g. [['MAT 1','MAT 2',...],
+                                  [['MAT_MultiplicativeSp...ElastHyper', 'NUMMATEL', '1', 'MATIDSEL', '4', 'NUMFACINEL', '1', 'INELDEFGRADFACIDS', '5', 'DENS', '1.0', '2'],[...]...]].
+
+    Returns:
+        list: list containing the line indices in material_items corresponding to the found linked materials
+    """
 
     # find the line in material_items corresponding to the material index
     material_line_index = material_items[0].index(
@@ -155,19 +164,26 @@ def find_all_linked_materials(material_number, material_items):
 
 
 def get_all_material_line_indices_for_clonematmmap_line(cmm_line, material_items):
-    # For a CLONING MATERIAL MAP line, the function determines all the lines of the materials associated with this line (by using the line elements of material_items).
-    #   Input:
-    #       cmm_line -> e.g. 'SRC_FIELD structure SRC_MAT 3 TAR_FIELD scatra TAR_MAT 8'
-    #       material_items -> e.g. [['MAT 1','MAT 2',...],
-    #                                   [['MAT_MultiplicativeSp...ElastHyper', 'NUMMATEL', '1', 'MATIDSEL', '4', 'NUMFACINEL', '1', 'INELDEFGRADFACIDS', '5', 'DENS', '1.0', '2'],[...]...]]
-    #   Output:
-    #          src_field: source field
-    #          src_mat: the index of the source material
-    #          src_mat_line_indices: all the line indices in material_items associated with the src_material
-    #                              (including the linked materials, e.g. elastic components)
-    #          tar_field, tar_mat and tar_mat_lines -> analogous for the target material
+    """For a CLONING MATERIAL MAP line, determine all the lines of the materials associated with this line (by using the line elements of material_items).
 
-    # analyze the provided cmm_line for src_field, src_mat, tar_field, tar_mat
+    Args:
+        cmm_line (str) : clone material map line, e.g. 'SRC_FIELD structure SRC_MAT 3 TAR_FIELD scatra TAR_MAT 8'.
+        material_items (list): all material items, e.g. [['MAT 1','MAT 2',...],
+                                  [['MAT_MultiplicativeSp...ElastHyper', 'NUMMATEL', '1', 'MATIDSEL', '4', 'NUMFACINEL', '1', 'INELDEFGRADFACIDS', '5', 'DENS', '1.0', '2'],[...]...]].
+
+    Returns:
+        tuple: 
+            - src_field (str): source field.
+            - src_mat (int): the index of the source material.
+            - src_mat_line_indices (list): all the line indices in material_items associated with the src_material
+                            (including the linked materials, e.g. elastic components).
+            - tar_field (str): target field.
+            - tar_mat (int): the index of the target material.                                                                                
+            - tar_mat_line_indices (list): all the line indices in material_items associated with the tar_material
+                            (including the linked materials, e.g. elastic components).                                
+    """
+
+   # analyze the provided cmm_line for src_field, src_mat, tar_field, tar_mat
     cmm_line_components = cmm_line.split(" ")
     src_field = cmm_line_components[cmm_line_components.index("SRC_FIELD") + 1]
     src_mat = cmm_line_components[cmm_line_components.index("SRC_MAT") + 1]
@@ -188,21 +204,23 @@ def get_all_material_line_indices_for_clonematmmap_line(cmm_line, material_items
     )
 
 
-""""returns all specifiers for references to other materials (regarding IDs)"""
-
-
 def get_main_and_sub_sections(sections_list):
-    # For given .dat file sections, this function determines all the main sections.
-    #   e.g. SCALAR TRANSPORT DYNAMIC / SCALAR TRANSPORT DYNAMIC/STABILIZATION,
-    #        SCALAR TRANSPORT DYNAMIC/S2I COUPLING
-    #   are all sub sections contained within the same main section SCALAR TRANSPORT DYNAMIC
-    #   Input:
-    #       sections_list: list of all sections read from the .dat file
-    #   Output::
-    #       main_sections: list of the main sections [<main_1>, <main_2>, ....]
-    #       sub_sections: list of the sub sections for each main category [[<aux_1_1>, <aux_1_2>,...], [<aux_2_1>, <aux_2_2>,...],...]
-
-    # create a copy of sections_list
+    """For given dat file sections, determines all the main sections. 
+   
+    For example, 
+    SCALAR TRANSPORT DYNAMIC / SCALAR TRANSPORT DYNAMIC/STABILIZATION, SCALAR TRANSPORT DYNAMIC/S2I COUPLING 
+    are all sub sections contained within the same main section SCALAR TRANSPORT DYNAMIC.
+   
+    Args:
+        sections_list (list): list of all section names read from the .dat file.
+    
+    Returns:
+        tuple:
+            - main_sections (list): list of the main sections [main_1, main_2, ....].
+            - sub_sections (list): list of the sub sections for each main category [[aux_1_1, aux_1_2,...], [aux_2_1, aux_2_2,...],...].
+    """
+    
+   # create a copy of sections_list
     sections = sections_list.copy()
 
     # create arrays to be returned
@@ -275,13 +293,16 @@ def mat_specifiers():
     ]
 
 
-def read_dat_file(dat_file_path):
-    # This function reads in the content of the .dat file dat_file_path and sections it according to its categories
-    #   Input:
-    #       dat_file_path: string: full path to the .dat file to be read
+def read_dat_file(dat_file_name, dat_file_lines):
+    """Read provided .dat file content and section it according to its categories.
 
-    # read all the file lines
-    file_lines = open(dat_file_path, "r").readlines()
+    Args:
+        dat_file_name (str): name (basename) of the .dat file.
+        dat_file_lines (str): list of file lines of the .dat file.
+
+    Returns:
+        dict: dictionary containing read-in .dat file information, such as its categories, description, conditions, ...
+    """
 
     # define content variables
     file_title = []  # file title
@@ -297,15 +318,15 @@ def read_dat_file(dat_file_path):
     comment_lines = []  # lines with comments, marked with // -> not required
 
     # remove white spaces at the beginning and at the end of each line
-    file_lines = [line.strip() for line in file_lines if line.strip()]
+    dat_file_lines = [line.strip() for line in dat_file_lines if line.strip()]
 
     # loop through all the lines of the file
     l = 0  # line index l
     category = (
         []
     )  # category variable -> used further down below for the sectioning of the file content
-    while l < len(file_lines):
-        match file_lines[l][0]:  # sectioning based on first character
+    while l < len(dat_file_lines):
+        match dat_file_lines[l][0]:  # sectioning based on first character
             case (
                 "-"
             ):  # Symbol indicates a new category -> The use of "-" as a bullet point in the file description is discussed below
@@ -324,10 +345,10 @@ def read_dat_file(dat_file_path):
                     category_item_value = []
 
                 # get the new category
-                first_letter_ind = file_lines[l].index(
-                    re.findall("[A-Z]", file_lines[l])[0]
+                first_letter_ind = dat_file_lines[l].index(
+                    re.findall("[A-Z]", dat_file_lines[l])[0]
                 )
-                category = file_lines[l][first_letter_ind:]
+                category = dat_file_lines[l][first_letter_ind:]
 
                 # if we have reached a FUNCT block, we reset its index counter
                 if re.search("^FUNCT[0-9]+$", category):
@@ -341,48 +362,48 @@ def read_dat_file(dat_file_path):
                 #   are not added to category_items (see further above)
                 if category[0:5] == "TITLE":  # add file description to file_description
                     curr_line_ind = l + 1
-                    while curr_line_ind < len(file_lines):
-                        if (file_lines[curr_line_ind][0] == "-") and (
-                            file_lines[curr_line_ind].replace("-", "").isupper()
+                    while curr_line_ind < len(dat_file_lines):
+                        if (dat_file_lines[curr_line_ind][0] == "-") and (
+                            dat_file_lines[curr_line_ind].replace("-", "").isupper()
                         ):  # second condition in order to check if a new category comes up (- could also be used as a bullet point within the description) -> we check if we have an uppercase string by removing "---"
                             l = curr_line_ind  # -1 required?
 
                             # get the new category
-                            first_letter_ind = file_lines[l].index(
-                                re.findall("[A-Z]", file_lines[l])[0]
+                            first_letter_ind = dat_file_lines[l].index(
+                                re.findall("[A-Z]", dat_file_lines[l])[0]
                             )
-                            category = file_lines[l][first_letter_ind:]
+                            category = dat_file_lines[l][first_letter_ind:]
                             break
                         else:
-                            file_description.append(file_lines[curr_line_ind])
+                            file_description.append(dat_file_lines[curr_line_ind])
                             curr_line_ind += 1
-                            if curr_line_ind == len(file_lines):
+                            if curr_line_ind == len(dat_file_lines):
                                 raise Exception(
                                     "The entire file was read without sectioning a file description"
                                 )
                 l += 1
             case "/":  # comment lines
-                comment_lines.append(file_lines[l])
+                comment_lines.append(dat_file_lines[l])
                 l += 1
             case _:  # in a category
                 if category == "MATERIALS":
                     matindex += 1
                     # NEW: split the line in "MAT <number>" as the name and the rest as the value
                     category_item_name.append(
-                        re.findall("^MAT [0-9]+", file_lines[l])[0]
+                        re.findall("^MAT [0-9]+", dat_file_lines[l])[0]
                     )
                     category_item_value.append(
-                        file_lines[l].replace(
-                            re.findall("^MAT [0-9]+ ", file_lines[l])[0], ""
+                        dat_file_lines[l].replace(
+                            re.findall("^MAT [0-9]+ ", dat_file_lines[l])[0], ""
                         )
                     )
                     """ old version, taken over from BACI_Converter.js
-                    category_item_name, category_item_value =  # material_line_converter(file_lines[l], category_item_name, category_item_value)
+                    category_item_name, category_item_value =  # material_line_converter(dat_file_lines[l], category_item_name, category_item_value)
                     """
                 elif category == "CLONING MATERIAL MAP":
                     cmmindex += 1
                     category_item_value.append(
-                        file_lines[l]
+                        dat_file_lines[l]
                     )  # the whole line is the value to append
                     category_item_name.append(cmmindex)  # the index is the name
                 elif re.search(
@@ -390,7 +411,7 @@ def read_dat_file(dat_file_path):
                 ):  # NEW: we want to read the whole line of the category item, not only start and end value (otherwise we miss some information, e.g. "SYMBOLIC_FUNCTION_OF_SPACE_TIME")
                     functindex += 1
                     category_item_value.append(
-                        file_lines[l]
+                        dat_file_lines[l]
                     )  # the whole line is the value to append
                     category_item_name.append(functindex)  # the index is the name
                 elif (
@@ -398,17 +419,17 @@ def read_dat_file(dat_file_path):
                 ):  # NEW: we read whole lines for the result description section
                     resdesindex += 1
                     category_item_value.append(
-                        file_lines[l]
+                        dat_file_lines[l]
                     )  # the whole line is the value to append
                     category_item_name.append(resdesindex)  # the index is the name
                 else:
-                    index_end_item = file_lines[l].index(" ")
-                    index_begin_value = file_lines[l].rfind(" ")
+                    index_end_item = dat_file_lines[l].index(" ")
+                    index_begin_value = dat_file_lines[l].rfind(" ")
                     category_item_name.append(
-                        file_lines[l][0:index_end_item]
+                        dat_file_lines[l][0:index_end_item]
                     )  # item from first place to index_end_item
                     category_item_value.append(
-                        file_lines[l][index_begin_value:]
+                        dat_file_lines[l][index_begin_value:]
                     )  # value from last blank to end
 
                 l += 1
@@ -435,19 +456,19 @@ def read_dat_file(dat_file_path):
     count = 0
     cond = ""
     l = 0
-    while l < len(file_lines):
-        if (file_lines[l][0] == "-") and (
-            file_lines[l][-10:] == "CONDITIONS"
+    while l < len(dat_file_lines):
+        if (dat_file_lines[l][0] == "-") and (
+            dat_file_lines[l][-10:] == "CONDITIONS"
         ):  # condition section reached
             count = -1
-            first_letter = file_lines[l].index(re.findall("[A-Z]", file_lines[l])[0])
-            cond = file_lines[l][first_letter:]
-        elif (file_lines[l][0] == "-") and (
-            file_lines[l][-10:] != "CONDITIONS"
+            first_letter = dat_file_lines[l].index(re.findall("[A-Z]", dat_file_lines[l])[0])
+            cond = dat_file_lines[l][first_letter:]
+        elif (dat_file_lines[l][0] == "-") and (
+            dat_file_lines[l][-10:] != "CONDITIONS"
         ):  # not a condition section
             count = 0
         elif count == -1:  # inside a condition section
-            area = file_lines[l].split(" ")[0]
+            area = dat_file_lines[l].split(" ")[0]
             if area == "DPOINT":
                 count = 1
             if area == "DLINE":
@@ -456,15 +477,15 @@ def read_dat_file(dat_file_path):
                 count = 3
             if area == "DVOL":
                 count = 4
-        elif (count >= 1) and (file_lines[l][0] == "E"):  # entity line for a condition
-            entity = int(file_lines[l].split(" ")[1])
+        elif (count >= 1) and (dat_file_lines[l][0] == "E"):  # entity line for a condition
+            entity = int(dat_file_lines[l].split(" ")[1])
             if entity not in cond_entity_list[count - 1]:
                 cond_entity_list[count - 1].append(entity)
                 cond_type_list[count - 1].append(
                     list([cond])
                 )  # NEW -> we directly save it as a list, in order to have it homogenized
                 cond_context_list[count - 1].append(
-                    [file_lines[l][(file_lines[l].index("-") + 2) :]]
+                    [dat_file_lines[l][(dat_file_lines[l].index("-") + 2) :]]
                 )
             else:
                 ind = cond_entity_list[count - 1].index(entity)
@@ -477,12 +498,12 @@ def read_dat_file(dat_file_path):
                     ]
                     cond_context_list[count - 1][ind] = [
                         cond_context_list[count - 1][ind],
-                        file_lines[l][(file_lines[l].index("-") + 2) :],
+                        dat_file_lines[l][(dat_file_lines[l].index("-") + 2) :],
                     ]
                 else:
                     cond_type_list[count - 1][ind].append(cond)
                     cond_context_list[count - 1][ind].append(
-                        file_lines[l][(file_lines[l].index("-") + 2) :]
+                        dat_file_lines[l][(dat_file_lines[l].index("-") + 2) :]
                     )
         l += 1
 
@@ -495,7 +516,7 @@ def read_dat_file(dat_file_path):
     # get all file line indices with the regular expression ^-{2,}[A-Z0-9]+$ -> starting with at least two "-" and ending with a combination of uppercase letters and numbers
     geometry_categories_indices = [
         i
-        for (i, l) in enumerate(file_lines)
+        for (i, l) in enumerate(dat_file_lines)
         if (
             (len(re.findall("^-{2,}[A-Z0-9 -]+$", l)) > 0)
             and (l.replace("-", "") not in file_categories)
@@ -505,10 +526,10 @@ def read_dat_file(dat_file_path):
     ]
 
     # take all lines from the geometry_categories and save them in a geometry_lines list
-    geometry_lines = [l for l in file_lines[geometry_categories_indices[0] :]]
+    geometry_lines = [l for l in dat_file_lines[geometry_categories_indices[0] :]]
 
     # add file name as a file title
-    file_title.append(Path(dat_file_path).name)
+    file_title.append(dat_file_name)
 
     return_dict = {
         "file_title": file_title,
@@ -524,6 +545,16 @@ def read_dat_file(dat_file_path):
 
 
 def sort_conditions(src_cond_entity_list, src_cond_type_list, src_cond_context_list):
+    """Sort condition lists numerically based on the entity items.
+
+    Args:
+        src_cond_entity_list (list): list of entities [[list_of_point_entities],[list_of_line_entities],[list_of_surf_entities],[list_of_vol_entities]].
+        src_cond_type_list (list): list of condition types for each entity [[[list_of_condition_types_for_point_entity_1, ...]],[list_of_condition_types_for_line_entity_1, ...],[...],[...]].
+        src_cond_context_list (list): list of condition texts/contexts for each entity [[[list_of_condition_contexts_for_point_entity_1, ...]],[list_of_condition_contexts_for_line_entity_1, ...],[...],[...]].
+
+    Returns:
+        tuple: Same as input, but sorted based on the entity numbers for each of POINT, LINE, SURF, VOL.
+    """
     # the function takes in condition lists, where the entities are unsorted numerically and sorts them accordingly
 
     # we use a copy of the lists
@@ -551,11 +582,32 @@ def sort_conditions(src_cond_entity_list, src_cond_type_list, src_cond_context_l
     return cond_entity_list, cond_type_list, cond_context_list
 
 
-def validate_dat_file_path(dat_file_path):
-    # Validate the file path: file has to exist and end with ".dat"
-    dat_file_path = Path(dat_file_path)
-    if dat_file_path.suffix != ".dat":
-        raise Exception(f"Provided file {dat_file_path} does not end with .dat!")
+def create_file_object_for_browser(dat_file_name, dat_file_lines, dat_file_size, dat_file_last_modified):
+    """Creates a file object that can be utilized by the VFileInput object in the GUI toolbar.
 
-    if not dat_file_path.is_file():
-        raise Exception("Provided file does not exist!")
+    Args:
+        dat_file_name (str): name (basename) of the .dat file.
+        dat_file_lines (str): list of file lines of the .dat file.
+        dat_file_size (int): size of the .dat file.
+        dat_file_last_modified (int): timestamp for the last modification of the .dat file.
+    
+
+    Returns:
+        dict: file object dictionary mimicking the behavior utilized by file input objects in the browser.
+    """
+
+    # get file content from the read-in lines
+    content = "\n".join(dat_file_lines)
+
+    # set file metadata
+    dat_file_type = "application/octet-stream"
+
+    # mimic a file object and return it
+    return {
+        "name": dat_file_name,
+        "size": dat_file_size, 
+        "type": dat_file_type,
+        "lastModified": dat_file_last_modified,
+        "content": content.encode("utf-8"),
+        "_filter": ['content']
+    }
