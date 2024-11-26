@@ -34,8 +34,8 @@ import time
 
 # create server object and the state, control variables
 SERVER = get_server()
-STATE, CTRL = SERVER.state, SERVER.controller
-# STATE contains all the state variables, CTRL contains all the control functions / elements, UI
+STATE, CTRL, CTXT = SERVER.state, SERVER.controller, SERVER.context
+# STATE contains all the state variables to be shared between server and client, CTRL contains all the control functions / elements, CTXT is a server-only state object which can be utilized to collect global server variables
 
 
 def run_webviewer(dat_file=None):
@@ -84,11 +84,18 @@ def run_webviewer(dat_file=None):
     vtu_threshold_condition_points = vtu.create_vtu_threshold_points(reader, STATE)
     vtu_sphere = vtu.create_vtu_sphere(reader)
 
+    # create global coordinate system
+    vtu_global_cos = vtu.create_vtu_global_cos(reader)
+
     STATE.TEMP_DIR = temp_dir
-    STATE.READER = reader
-    STATE.VTU_THRESHOLD_MAT = vtu_threshold_mat
-    STATE.VTU_THRESHOLD_CONDITION_POINTS = vtu_threshold_condition_points
-    STATE.VTU_SPHERE = vtu_sphere
+
+    # we put the non-serializable objects into CTXT instead of STATE 
+    # -> no errors anymore, and functionality is preserved, because these variables are only required on the server side
+    CTXT.READER = reader
+    CTXT.VTU_THRESHOLD_MAT = vtu_threshold_mat
+    CTXT.VTU_THRESHOLD_CONDITION_POINTS = vtu_threshold_condition_points
+    CTXT.VTU_SPHERE = vtu_sphere
+    CTXT.VTU_GLOBAL_COS = vtu_global_cos
 
     # append functions to CTRL
     CTRL.CLICK_INFO_BUTTON = click_info_button
@@ -98,7 +105,7 @@ def run_webviewer(dat_file=None):
 
     # create vtu render window
     render_window = vtu.create_vtu_render_window(
-        reader, vtu_threshold_condition_points, vtu_threshold_mat, vtu_sphere
+        reader, vtu_threshold_condition_points, vtu_threshold_mat, vtu_sphere, vtu_global_cos
     )
 
     gui.create_gui(SERVER, render_window)
@@ -371,22 +378,9 @@ def STATE_initialization(temp_dir, dat_file_name, dat_file_lines, dat_file_size,
     STATE.COND_TYPE_LIST = dat_file_content["cond_type_list"]
 
     # GET THE RESULT DESCRIPTION
-    # STATE.RESULT_DESCRIPTION = STATE.CATEGORY_ITEMS[
-    #    STATE.CATEGORIES.index("RESULT DESCRIPTION")
-    # ]
-    STATE.RESULT_DESCRIPTION = [
-        [1, 2, 3, 4, 5, 6, 7, 8],
-        [
-            "STRUCTURE DIS structure NODE 4 QUANTITY dispy VALUE -1.31962249833408790e-01 TOLERANCE 9.1e-10",
-            "STRUCTURE DIS structure NODE 5 QUANTITY dispx VALUE -1.31962249833408513e-01 TOLERANCE 9.1e-10",
-            "STRUCTURE DIS structure NODE 8 QUANTITY dispx VALUE -9.06271329067036280e-02 TOLERANCE 9.1e-10",
-            "STRUCTURE DIS structure NODE 8 QUANTITY dispy VALUE -9.06271329067068060e-02 TOLERANCE 9.1e-10",
-            "STRUCTURE DIS structure NODE 8 QUANTITY dispz VALUE 2.84025416687741394e-01 TOLERANCE 2.8e-09",
-            "STRUCTURE DIS structure NODE 6 QUANTITY dispx VALUE -9.06271329067021153e-02 TOLERANCE 9.1e-10",
-            "STRUCTURE DIS structure NODE 4 QUANTITY stress_zz VALUE  1.83879098311578976e-01 TOLERANCE 1.8e-07",
-            "STRUCTURE DIS structure NODE 8 QUANTITY stress_zz VALUE  1.83879098311589884e-01 TOLERANCE 1.8e-07",
-        ],
-    ]
+    STATE.RESULT_DESCRIPTION = STATE.CATEGORY_ITEMS[
+        STATE.CATEGORIES.index("RESULT DESCRIPTION")
+     ]
 
     # GET THE GEOMETRY LINES
     STATE.GEOMETRY_LINES = dat_file_content["geometry_lines"]
@@ -570,8 +564,8 @@ def change_selected_cmm_line(SELECTED_CMM_LINE, **kwargs):
     )
 
     # set threshold of the material of the vtk local view
-    STATE.VTU_THRESHOLD_MAT.SetLowerThreshold(STATE.SELECTED_CMM_LINE_INDEX + 1)
-    STATE.VTU_THRESHOLD_MAT.SetUpperThreshold(STATE.SELECTED_CMM_LINE_INDEX + 1)
+    CTXT.VTU_THRESHOLD_MAT.SetLowerThreshold(STATE.SELECTED_CMM_LINE_INDEX + 1)
+    CTXT.VTU_THRESHOLD_MAT.SetUpperThreshold(STATE.SELECTED_CMM_LINE_INDEX + 1)
     # update the vtk local view
     CTRL.VIEW_UPDATE()
 
@@ -611,7 +605,7 @@ def change_selected_cond_general_type(SELECTED_COND_GENERAL_TYPE, **kwargs):
             STATE.SELECTED_COND_GENERAL_TYPE_INDEX
         ][0]
         # set thresholdPoints of the condition of the vtk figure
-        STATE.VTU_THRESHOLD_CONDITION_POINTS.SetInputArrayToProcess(
+        CTXT.VTU_THRESHOLD_CONDITION_POINTS.SetInputArrayToProcess(
             0,
             0,
             0,
@@ -633,7 +627,7 @@ def change_selected_cond_entity(SELECTED_COND_ENTITY, **kwargs):
     ].index(SELECTED_COND_ENTITY)
 
     # set thresholdPoints of the condition of the vtk figure
-    STATE.VTU_THRESHOLD_CONDITION_POINTS.SetInputArrayToProcess(
+    CTXT.VTU_THRESHOLD_CONDITION_POINTS.SetInputArrayToProcess(
         0,
         0,
         0,
@@ -656,19 +650,7 @@ def change_selected_result_descr_index(SELECTED_RESULT_DESCR_INDEX, **kwargs):
 # after selecting a result description from the list: item change
 @STATE.change("SELECTED_RESULT_DESCR")
 def change_selected_result_descr(SELECTED_RESULT_DESCR, **kwargs):
-    # check if the line contains the marker "NODE"
-    if len(re.findall("NODE", STATE.SELECTED_RESULT_DESCR)) > 0:
-        # get the specified node
-        result_descr_components = STATE.SELECTED_RESULT_DESCR.split(" ")
-        node_index = (
-            int(result_descr_components[result_descr_components.index("NODE") + 1]) - 1
-        )
-
-        # update graphic representation
-        node_coords = STATE.READER.GetOutput().GetPoints().GetPoint(node_index)
-        STATE.VTU_SPHERE.SetCenter(node_coords[0], node_coords[1], node_coords[2])
-        # update the vtk figure
-        CTRL.VIEW_UPDATE()
+    vtu.update_vtu_render_window(CTXT.READER, CTXT.VTU_SPHERE, CTXT.VTU_GLOBAL_COS, SERVER)
 
 
 # changing the values for t_max, x, y or z for the function plots
@@ -738,7 +720,7 @@ def click_convert_button():
     vtu_path = convert_to_vtu(temp_dat_file, STATE.TEMP_DIR)
 
     # update reader to read the current vtu file
-    vtu.update_vtu_reader(STATE.READER, vtu_path)
+    vtu.update_vtu_reader(CTXT.READER, vtu_path)
 
     # read dat file content
     dat_file_content = read_dat_file(STATE.DAT_NAME, STATE.DAT_LINES)
@@ -754,10 +736,9 @@ def click_convert_button():
     # flush state: force push server changes
     STATE.flush()
 
-    # it is not required to update the actor_cond point size
-    STATE.VTU_SPHERE.SetRadius(
-        vtu.get_length_scale_rendered_object(STATE.READER) / 50.0
-    )
+
+    # update render window (manual scaling of various elements)
+    vtu.update_vtu_render_window(CTXT.READER, CTXT.VTU_SPHERE, CTXT.VTU_GLOBAL_COS, SERVER)
 
     CTRL.VIEW_RESET_CAMERA()
     CTRL.VIEW_UPDATE()
