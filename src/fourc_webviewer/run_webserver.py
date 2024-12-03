@@ -25,6 +25,7 @@ from trame.app import get_server
 from vtkmodules.vtkCommonDataModel import vtkDataObject
 import fourc_webviewer.vturender as vtu
 from fourc_webviewer_default_files import DEFAULT_INPUT_FILE
+import time
 
 # ------------------------------------------------------------------------------#
 #                              COMMON SERVER SETUP                              #
@@ -431,6 +432,15 @@ def STATE_initialization(temp_dir, dat_path, vtu_path, dat_file_content):
     STATE.EDIT_MODE_POSSIB = ["VIEW MODE", "EDIT MODE"]
     STATE.EDIT_MODE = STATE.EDIT_MODE_POSSIB[0]
 
+    # initialize info mode value: False (bottom sheet with infos is not displayed until "INFO" button is pressed, and INFO_MODE is then set to True)
+    STATE.INFO_MODE = False
+
+    # initialize export mode value: False (bottom sheet with export settings is not displayed until "EXPORT" button is pressed, and EXPORT_MODE is then set to True)
+    STATE.EXPORT_MODE = False
+
+    # initialize the export status and its possible choices
+    STATE.EXPORT_STATUS_POSSIB = ["INFO", "SUCCESS", "ERROR"] # INFO: button was not yet clicked, SUCCESS: export was successful, ERROR: there was an error after trying to export
+    STATE.EXPORT_STATUS = "INFO"
 
 # ------------------------------------------------------------------------------#
 #                               STATE CHANGES                                  #
@@ -449,6 +459,12 @@ def change_dat_path(DAT_PATH, **kwargs):
     # set render state to 1 to signify that the first render is done
     STATE.RENDER_COUNT = 1
 
+
+# after changing the export .dat file path
+@STATE.change("EXPORT_DAT_PATH")
+def change_export_dat_path(EXPORT_DAT_PATH, **kwargs):
+    # set export status to neutral ("INFO")
+    STATE.EXPORT_STATUS = STATE.EXPORT_STATUS_POSSIB[0]
 
 # after selecting another main category
 @STATE.change("SELECTED_MAIN_CATEGORY")
@@ -650,6 +666,12 @@ def change_materials_modif_attr(MATERIALS_MODIF_ATTR, **kwargs):
     STATE.dirty("MATERIALS")
 
 
+# after modifying the export mode (either after clicking on EXPORT or after canceling the export bottom sheet)
+@STATE.change("EXPORT_MODE")
+def change_export_mode(EXPORT_MODE, **kwargs):
+    STATE.EXPORT_STATUS = STATE.EXPORT_STATUS_POSSIB[0] # set export status to neutral ("INFO")
+
+
 # ------------------------------------------------------------------------------#
 #                            CLICK EVENT FUNCTIONS                             #
 # ------------------------------------------------------------------------------#
@@ -661,7 +683,6 @@ def click_info_button():
 # modify STATE.EXPORT_MODE if the <EXPORT> button is clicked
 def click_export_button():
     STATE.EXPORT_MODE = not STATE.EXPORT_MODE
-
 
 # convert provided dat file
 def click_convert_button():
@@ -691,19 +712,23 @@ def click_convert_button():
 
 # export dat file
 def click_save_button():
-    write_dat_file(
-        STATE.TITLE,
-        STATE.DESCRIPTION,
-        STATE.CATEGORIES,
-        STATE.CATEGORY_ITEMS,
-        STATE.MATERIALS,
-        STATE.CLONING_MATERIAL_MAP,
-        STATE.FUNCT,
-        STATE.COND_GENERAL_TYPES,
-        STATE.COND_ENTITY_LIST,
-        STATE.COND_CONTEXT_LIST,
-        STATE.COND_TYPE_LIST,
-        STATE.RESULT_DESCRIPTION,
-        STATE.GEOMETRY_LINES,
-        STATE.EXPORT_DAT_PATH,
-    )
+    try:
+        write_dat_file(
+            STATE.TITLE,
+            STATE.DESCRIPTION,
+            STATE.CATEGORIES,
+            STATE.CATEGORY_ITEMS,
+            STATE.MATERIALS,
+            STATE.CLONING_MATERIAL_MAP,
+            STATE.FUNCT,
+            STATE.COND_GENERAL_TYPES,
+            STATE.COND_ENTITY_LIST,
+            STATE.COND_CONTEXT_LIST,
+            STATE.COND_TYPE_LIST,
+            STATE.RESULT_DESCRIPTION,
+            STATE.GEOMETRY_LINES,
+            STATE.EXPORT_DAT_PATH,
+        )
+        STATE.EXPORT_STATUS = STATE.EXPORT_STATUS_POSSIB[1]
+    except:
+        STATE.EXPORT_STATUS = STATE.EXPORT_STATUS_POSSIB[2]
