@@ -20,22 +20,32 @@ def write_dat_file(
     geometry_lines,
     dat_file_path,
 ):
+    """Write .dat file from given input info.
+
+    Args:
+           title (str): title of the file; Example -> "Simulation of something"
+           description (str): description of the file; Example -> "This is a generic description \n Here you could write other things as well"
+           categories (list): categories of the dat file; Example -> ["PROBLEM SIZE","PROBLEM TYP",...]
+           category_items (tuple): [name, value] pairs for each category; Example -> [["DIM","3"], ["LINEAR_SOLVER","1"],...]
+                            NOTE: the categories MATERIALS, CLONING_MATERIAL_MAP, FUNCT and the conditions are handled separately. Therefore, their [name, value] pairs here are irrelevant
+           materials(list): Example -> [["MAT 1", "MAT 2",...],["MAT_MultiplicativeSplitDefgradElastHyper NUMMATEL 1 MATIDSEL 4 NUMFACINEL 1 INELDEFGRADFACIDS 5 DENS 1.0",...]]
+           cloning_material_map (list): [list of material dependencies, [...], [True or False]]; Example: [['MAT 1 (structure) -> MAT 6 (scatra)', 'MAT 2 (structure) -> MAT 7 (scatra)', 'MAT 3 (structure) -> MAT 8 (scatra)',... ],[...],[True]] -> True: means that we read CLONING MATERIAL MAP from the original .dat file and have to therefore write it to the export file as well; if False: it means we didn't read it from the .dat file but only used the same variable name for convenience -> should not be included in the .dat file
+           funct (list): [list of funct names, list of funct specifications] for the functions; Example: [["FUNCT1", "FUNCT2",...], [[["COMPONENT 0", "COMPONENT 1", "COMPONENT 2"],["SYMBOLIC_FUNCTION_OF_SPACE_TIME","SYMBOLIC_FUNCTION_OF_SPACE_TIME","SYMBOLIC_FUNCTION_OF_SPACE_TIME"],["10.88*t","sin(x)*cos(t)","180.0"]],...]
+           cond_general_types (list): list of general types of conditions, by default ["DPOINT","DLINE","DSURF","DVOL"]
+           cond_entity_list (list): [[list of condition entities for DPOINT conditions],[list of condition entities for DLINE conditions],[list of condition entities for DSURF conditions],[list of condition entities for DVOL conditions]]; Example: [[1,2],[1,2,3],[1],[1,2,3,4]]
+           cond_context_list (list): [[list of condition contexts for DPOINT conditions],[list of condition contexts for DLINE conditions],[list of condition contexts for DSURF conditions],[list of condition contexts for DVOL conditions]]; Example: [["NUMDOF 3 ONOFF 1 1 1 VAL 0.0 0.0 0.0 FUNCT none none none","NUMDOF 3 ONOFF 1 1 1 VAL 0.0 0.0 0.0 FUNCT none none none"],[...],[["1 Slave S2I_KINETICS_ID  1", "1 Slave KINETIC_MODEL Butler-Volmer NUMSCAL 1 STOICHIOMETRIES -1  E- 1  K_R  2.07e-5 ALPHA_A 0.5 ALPHA_C 0.5 IS_PSEUDO_CONTACT 0"],[...],...],[...]]
+           cond_type_list (list): [[list of condition types for DPOINT conditions],[list of condition types for DLINE conditions],[list of condition types for DSURF conditions],[list of condition types for DVOL conditions]]; Example: [["DESIGN POINT DIRICH CONDITIONS","DESIGN POINT DIRICH CONDITIONS"],[...],[["DESIGN CCCV CELL CYCLING SURF CONDITIONS", "DESIGN CCCV HALF-CYCLE SURF CONDITIONS"],[...],...],[...]]
+           result_description (list): [[list of result line indices], [list of result line descriptions]]; Example: [[1,2,3,...],["SCATRA DIS scatra NODE 10 QUANTITY phi1 VALUE  1.08434445258624166e+01 TOLERANCE 1.1e-07", "SCATRA DIS scatra SPECIAL QUANTITY soc1 VALUE  9.98966931042610251e-01 TOLERANCE 1.0e-08",...]]
+           geometry_lines (list): [lines with geometry specific info]; Example: ["-----------------------------------------------DNODE-NODE TOPOLOGY", "NODE    36 DNODE 1", "NODE    163 DNODE 1", ..., "-----------------------------------------------DLINE-NODE TOPOLOGY", "NODE    36 DLINE 1", "NODE    105 DLINE 1",...]
+
+    Returns:
+        None
+    """
+
+
+
     # This function writes a dat file from given input info
     #   Input:
-    #       title: string: title of the file; Example -> "Simulation of something"
-    #       description: string: description of the file; Example -> "This is a generic description \n Here you could write other things as well"
-    #       categories: list of strings: categories of the dat file; Example -> ["PROBLEM SIZE","PROBLEM TYP",...]
-    #       category_items: [name, value] pairs for each category; Example -> [["DIM","3"], ["LINEAR_SOLVER","1"],...]
-    #                        NOTE: the categories MATERIALS, CLONING_MATERIAL_MAP, FUNCT and the conditions are handled separately. Therefore, their [name, value] pairs here are irrelevant
-    #       materials: [<list of material names>,<list of material info>]; Example -> [["MAT 1", "MAT 2",...],["MAT_MultiplicativeSplitDefgradElastHyper NUMMATEL 1 MATIDSEL 4 NUMFACINEL 1 INELDEFGRADFACIDS 5 DENS 1.0",...]]
-    #       cloning_material_map: [<list of material dependencies>, [...], [<True or False>]]; Example: [['MAT 1 (structure) -> MAT 6 (scatra)', 'MAT 2 (structure) -> MAT 7 (scatra)', 'MAT 3 (structure) -> MAT 8 (scatra)',... ],[...],[True]] -> True: means that we read CLONING MATERIAL MAP from the original .dat file and have to therefore write it to the export file as well; if False: it means we didn't read it from the .dat file but only used the same variable name for convenience -> should not be included in the .dat file
-    #       funct: [<list of funct names>, <list of funct specifications>] for the functions; Example: [["FUNCT1", "FUNCT2",...], [[["COMPONENT 0", "COMPONENT 1", "COMPONENT 2"],["SYMBOLIC_FUNCTION_OF_SPACE_TIME","SYMBOLIC_FUNCTION_OF_SPACE_TIME","SYMBOLIC_FUNCTION_OF_SPACE_TIME"],["10.88*t","sin(x)*cos(t)","180.0"]],...]
-    #       cond_general_types: list of general types of conditions, by default ["DPOINT","DLINE","DSURF","DVOL"]
-    #       cond_entity_list: [[<list of condition entities for DPOINT conditions>],[<list of condition entities for DLINE conditions>],[<list of condition entities for DSURF conditions>],[<list of condition entities for DVOL conditions>]]; Example: [[1,2],[1,2,3],[1],[1,2,3,4]]
-    #       cond_context_list: [[<list of condition contexts for DPOINT conditions>],[<list of condition contexts for DLINE conditions>],[<list of condition contexts for DSURF conditions>],[<list of condition contexts for DVOL conditions>]]; Example: [["NUMDOF 3 ONOFF 1 1 1 VAL 0.0 0.0 0.0 FUNCT none none none","NUMDOF 3 ONOFF 1 1 1 VAL 0.0 0.0 0.0 FUNCT none none none"],[...],[["1 Slave S2I_KINETICS_ID  1", "1 Slave KINETIC_MODEL Butler-Volmer NUMSCAL 1 STOICHIOMETRIES -1  E- 1  K_R  2.07e-5 ALPHA_A 0.5 ALPHA_C 0.5 IS_PSEUDO_CONTACT 0"],[...],...],[...]]
-    #       cond_type_list: [[<list of condition types for DPOINT conditions>],[<list of condition types for DLINE conditions>],[<list of condition types for DSURF conditions>],[<list of condition types for DVOL conditions>]]; Example: [["DESIGN POINT DIRICH CONDITIONS","DESIGN POINT DIRICH CONDITIONS"],[...],[["DESIGN CCCV CELL CYCLING SURF CONDITIONS", "DESIGN CCCV HALF-CYCLE SURF CONDITIONS"],[...],...],[...]]
-    #       result_description: [[<list of result line indices>], [<list of result line descriptions>]]; Example: [[1,2,3,...],["SCATRA DIS scatra NODE 10 QUANTITY phi1 VALUE  1.08434445258624166e+01 TOLERANCE 1.1e-07", "SCATRA DIS scatra SPECIAL QUANTITY soc1 VALUE  9.98966931042610251e-01 TOLERANCE 1.0e-08",...]]
-    #       geometry_lines: [<lines with geometry specific info>]; Example: ["-----------------------------------------------DNODE-NODE TOPOLOGY", "NODE    36 DNODE 1", "NODE    163 DNODE 1", ..., "-----------------------------------------------DLINE-NODE TOPOLOGY", "NODE    36 DLINE 1", "NODE    105 DLINE 1",...]
 
     # initialize lines_list, containing all the file lines
     lines_list = []
@@ -100,28 +110,7 @@ def write_dat_file(
                 f"SRC_FIELD {src_field} SRC_MAT {src_mat} TAR_FIELD {tar_field} TAR_MAT {tar_mat}"
             )
 
-    """
-    # categories "FUNCT [0-9]": loop through all functions and their components
-    for funct_ind in range(len(funct[0])):
-        # get function name and append it as a category name
-        funct_name = funct[0][funct_ind]
-        lines_list.append("-"*(num_of_chars - len(funct_name)) + funct_name)
-
-        # append function specific lines
-        for comp_ind in range(len(funct[1][funct_ind][0])):
-            # get component name
-            comp_name = funct[1][funct_ind][0][comp_ind]
-
-            # get component function type
-            comp_funct_type = funct[1][funct_ind][1][comp_ind]
-
-            # get function string
-            comp_funct_string = funct[1][funct_ind][2][comp_ind]
-
-            # append informations to a component specific line
-            lines_list.append(f"{comp_name} {comp_funct_type} {comp_funct_string}")
-    """
-
+  
     # append the functions
     for funct_ind in range(len(funct[0])):
         # function name

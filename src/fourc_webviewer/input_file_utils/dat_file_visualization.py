@@ -8,7 +8,6 @@ import re
 
 from fourc_webviewer.input_file_utils.read_dat_file import (
     add_dat_file_data_to_dis,
-    validate_dat_file_path,
 )
 from pathlib import Path
 
@@ -27,9 +26,6 @@ def convert_to_vtu(dat_file_path, temp_dir):
     vtu_file_path = str(
         Path(temp_dir) / f"{os.path.splitext(os.path.basename(dat_file_path))[0]}.vtu"
     )
-
-    # validate the provided .dat file path
-    validate_dat_file_path(dat_file_path)
 
     # convert dat file to vtu file and return the path to the vtu file
     try:

@@ -15,6 +15,7 @@ from fourc_webviewer.input_file_utils.read_dat_file import (
     get_main_and_sub_sections,
     mat_specifiers,
     read_dat_file,
+    create_file_object_for_browser
 )
 from fourc_webviewer.input_file_utils.write_dat_file import write_dat_file
 import os
@@ -56,10 +57,23 @@ def run_webviewer(dat_file=None):
     # global dat and vtu file paths
     default_vtu_path = convert_to_vtu(dat_file, temp_dir)
 
-    # read dat file content
-    default_dat_file_content = read_dat_file(dat_file)
+    # read dat file name
+    dat_file_name = os.path.basename(dat_file)
 
-    STATE_initialization(temp_dir, dat_file, default_vtu_path, default_dat_file_content)
+    # read dat file lines
+    with open(dat_file, "r") as file:
+        dat_file_lines = file.readlines()
+
+    # get dat file size
+    dat_file_size = os.path.getsize(dat_file)
+
+    # get last modified time stamp
+    dat_file_last_modified = int(os.path.getmtime(dat_file)) 
+
+    # read dat file content
+    default_dat_file_content = read_dat_file(dat_file_name, dat_file_lines)
+
+    STATE_initialization(temp_dir, dat_file_name, dat_file_lines, dat_file_size, dat_file_last_modified, default_vtu_path, default_dat_file_content)
 
     # create reader and update it to read the current vtu file
     reader = vtu.create_vtu_reader()
@@ -96,15 +110,36 @@ def run_webviewer(dat_file=None):
 
 
 #   and "real" state changes (value > 0)
-def STATE_initialization(temp_dir, dat_path, vtu_path, dat_file_content):
+def STATE_initialization(temp_dir, dat_file_name, dat_file_lines, dat_file_size, dat_file_last_modified, vtu_path, dat_file_content):
+    """Initialize STATE object of the server.
+
+    Args:
+        temp_dir (str): temporary directory for the file management.
+        dat_file_name (str): name (basename) of the .dat file.
+        dat_file_lines (str): list of file lines of the .dat file.
+        dat_file_size (int): size of the .dat file.
+        dat_file_last_modified (int): timestamp for the last modification of the .dat file.
+        vtu_path (str, Path): full path of the converted .vtu file.
+        dat_file_content (dict): dictionary containing read-in .dat file information, such as its categories, description, conditions, ...
+
+    Returns:  
+        None
+    """
+
+
+
     # define and initialize the state variables of the shared state (only these can be used below for v_model, v_show...)
 
     ### --- STATE VARIABLES FOR PATH INFO --- ###
-    STATE.DAT_PATH = dat_path  # string: input dat file path
+    STATE.DAT_NAME = dat_file_name  # string: input dat file path
+    STATE.DAT_LINES = dat_file_lines # list: file lines of the input dat file
+    STATE.DAT_SIZE = dat_file_size # int: size of the .dat file
+    STATE.DAT_LAST_MODIFIED = dat_file_last_modified # int: last modified timestamp of the .dat file
     STATE.VTU_PATH = vtu_path  # string: vtu file path
     STATE.EXPORT_DAT_PATH = str(
-        Path(temp_dir) / f"new_{os.path.splitext(os.path.basename(dat_path))[0]}.dat"
+        Path(temp_dir) / f"new_{os.path.splitext(dat_file_name)[0]}.dat"
     )
+    STATE.INPUT_FILE = [create_file_object_for_browser(dat_file_name, dat_file_lines, dat_file_size, dat_file_last_modified)] # list containing a single element, used in the VFileInput object
 
     ### --- STATE VARIABLES FOR DAT FILE CONTENT --- ###
     STATE.TITLE = dat_file_content["file_title"][0]  # string: .dat file title
@@ -445,9 +480,17 @@ def STATE_initialization(temp_dir, dat_path, vtu_path, dat_file_content):
 # ------------------------------------------------------------------------------#
 #                               STATE CHANGES                                  #
 # ------------------------------------------------------------------------------#
-# after changing the .dat file path
-@STATE.change("DAT_PATH")
-def change_dat_path(DAT_PATH, **kwargs):
+ 
+# after selecting another input .dat file
+@STATE.change("INPUT_FILE")
+def change_input_file(INPUT_FILE, **kwargs):
+
+    # update file information for the STATE object
+    STATE.DAT_NAME = INPUT_FILE[0]["name"]
+    STATE.DAT_LINES = INPUT_FILE[0]["content"].decode("utf-8").split("\n")
+    STATE.DAT_SIZE = INPUT_FILE[0]["size"]
+    STATE.DAT_LAST_MODIFIED = INPUT_FILE[0]["lastModified"]
+
 
     if STATE.VTU_PATH != "" and STATE.RENDER_COUNT > 0:
         # trigger deletion of the vtu file from temp_files
@@ -686,17 +729,27 @@ def click_export_button():
 
 # convert provided dat file
 def click_convert_button():
+    # create temporary .dat file from its name and content
+    temp_dat_file = os.path.join(STATE.TEMP_DIR, STATE.DAT_NAME)
+    with open(temp_dat_file, "w") as f:
+            f.write("\n".join(STATE.DAT_LINES))
+
     # global dat and vtu file paths
-    vtu_path = convert_to_vtu(STATE.DAT_PATH, STATE.TEMP_DIR)
+    vtu_path = convert_to_vtu(temp_dat_file, STATE.TEMP_DIR)
 
     # update reader to read the current vtu file
     vtu.update_vtu_reader(STATE.READER, vtu_path)
 
     # read dat file content
-    dat_file_content = read_dat_file(STATE.DAT_PATH)
+    dat_file_content = read_dat_file(STATE.DAT_NAME, STATE.DAT_LINES)
+
+    # save render count and temporarily set the corresponding state variable to 0,
+    # in order to avoid the deletion of the vtu file due to changes in STATE.INPUT_FILE
+    render_count = STATE.RENDER_COUNT
+    STATE.RENDER_COUNT = 0
 
     # reinitialize all state variables
-    STATE_initialization(STATE.TEMP_DIR, STATE.DAT_PATH, vtu_path, dat_file_content)
+    STATE_initialization(STATE.TEMP_DIR, STATE.DAT_NAME, STATE.DAT_LINES, STATE.DAT_SIZE, STATE.DAT_LAST_MODIFIED, vtu_path, dat_file_content)
 
     # flush state: force push server changes
     STATE.flush()
@@ -708,6 +761,11 @@ def click_convert_button():
 
     CTRL.VIEW_RESET_CAMERA()
     CTRL.VIEW_UPDATE()
+
+    # reestablish the render count
+    STATE.RENDER_COUNT = render_count
+
+
 
 
 # export dat file
