@@ -18,7 +18,9 @@ def get_arguments():
         dict: Arguments dictionary
     """
     parser = argparse.ArgumentParser(description="4C Webviewer")
-    parser.add_argument("--dat_file", type=str, help="input file path to visualize")
+    parser.add_argument(
+        "--fourc_yaml_file", type=str, help="input file path to visualize"
+    )
 
     args = parser.parse_args()
 
