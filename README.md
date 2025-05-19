@@ -1,39 +1,91 @@
-# 4C-Webviewer
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/4C-logo/negative-white/4C-logo-landscape_negative.svg">
+  <source media="(prefers-color-scheme: light)" srcset="images/4C-logo/standard-color/4C-logo-landscape_rgb.svg">
+  <img alt="4C logo" src="images/4C-logo/standard-color/4C-logo-landscape_rgb.svg" width="400">
+</picture>
+</div>
 
-## Purpose
+<h1 align="center">
+  4C-Webviewer
+</h1>
 
-This repo is meant to improve the 4C Webviewer to get it to a stage to make it public to all interested people. It is already subdivided into smaller parts, however it is certainly not optimal yet.
+The **4C-Webviewer** is designed to visualize and edit the input of [4C](https://github.com/4C-multiphysics/4C). Instead of working with the text-based YAML input files directly, users can view and interact with the geometry of the problem they want to solve using **4C** within their browser.
 
-Furthermore, there is no testing included at this stage.
+Beyond visualization of the geometry, the webviewer helps users to explore material and boundary condition assignments, including any functions defined through them. This offers a more transparent and efficient way to understand and adjust the simulation setup.
 
-## How to install the conda environment needed for the 4C-Webviewer
+Below we show a first impression on how the **4C-Webviewer** looks like:
 
-This is already rather nice because we only have acceptable dependencies, i.e. open source dependencies:
+![4C-Webviewer Teaser](images/webviewer-teaser.png)
 
+## Overview
+- [Installation](#installation)
+- [Using the 4C-Webviewer](#using-the-4c-webviewer)
+- [Dependency Management](#dependency-management)
+- [Disclaimer](#disclaimer)
+- [License](#license)
+
+## Installation
+
+An Anaconda/Miniconda environment is highly recommended to install the required dependencies. After installing Anaconda/Miniconda execute the following steps:
+
+```bash
+conda create -n 4c-webviewer python=3.12
 ```
-conda create --name <name-of-environment> python=3.10
-conda activate <name-of-environment>
+
+Navigate to the source directory and activate the newly created environment:
+```bash
+conda activate 4c-webviewer
 ```
 
-## How to install the 4C-webviewer
-
-Go to the source directory and in the activated environment run
-```
+Install all requirements with:
+```bash
 pip install -e .
 ```
 
-## How to run the 4C-Webviewer
+Finally, you need to force the installation of a specific `lnmmeshio` version due to a dependency mismatch with:
+```bash
+pip install lnmmeshio==5.6.2 --force
+```
+We are already working on the resolution of this issue.
+
+## Using the 4C-Webviewer
 
 To start the webviewer, in the conda environment run:
 ```
 fourc_webviewer
 ```
-To directly open a dat file use
+To directly open a YAML input file use
 ```
-fourc_webviewer --dat_file <path-to-file>
+fourc_webviewer --fourc_yaml_file <path-to-4C-YAML-input-file>
 ```
 
 Alternatively change to the directory of the repo. Activate the created conda environment and run
 ```
 python main.py
 ```
+
+## Dependency Management
+
+To ease the dependency update process [`pip-tools`](https://github.com/jazzband/pip-tools) is utilized. To create the necessary [`requirements.txt`](./requirements.txt) file simply execute
+
+```
+pip-compile --all-extras --output-file=requirements.txt requirements.in
+````
+
+To upgrade the dependencies simply execute
+
+```
+pip-compile --all-extras --output-file=requirements.txt --upgrade requirements.in
+````
+
+## Disclaimer
+
+Please note that this project is still at an early stage of development.
+
+We encourage you to test the current state and provide feedback on what functionality would help you by opening an issue or a discussion, or even contribute to the progress yourself.
+
+
+## License
+
+This project is licensed under a MIT license. For further information check [`LICENSE`](./LICENSE).

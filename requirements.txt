@@ -36,9 +36,9 @@ idna==3.10
     # via yarl
 jsonschema==4.23.0
     # via fourcipp
-jsonschema-rs==0.29.1
+jsonschema-rs==0.30.0
     # via fourcipp
-jsonschema-specifications==2024.10.1
+jsonschema-specifications==2025.4.1
     # via
     #   fourcipp
     #   jsonschema
@@ -66,7 +66,7 @@ multidict==6.4.3
     #   yarl
 narwhals==1.38.0
     # via plotly
-numpy==2.2.4
+numpy==2.2.5
     # via
     #   -r requirements.in
     #   contourpy
@@ -75,7 +75,7 @@ numpy==2.2.4
     #   matplotlib
     #   meshio
     #   pandas
-packaging==24.2
+packaging==25.0
     # via
     #   deprecation
     #   fourcipp
@@ -107,6 +107,8 @@ python-utils==3.9.1
     # via lnmmeshio
 pytz==2025.2
     # via pandas
+pyvista==0.45.0
+    # via -r requirements.in
 pyyaml==6.0.2
     # via trame
 rapidyaml==0.8.0
@@ -118,7 +120,7 @@ referencing==0.36.2
     #   jsonschema-specifications
 rich==14.0.0
     # via meshio
-rpds-py==0.23.1
+rpds-py==0.24.0
     # via
     #   fourcipp
     #   jsonschema
@@ -154,7 +156,7 @@ trame-vtk==2.8.15
     # via -r requirements.in
 trame-vuetify==3.0.1
     # via -r requirements.in
-typing-extensions==4.12.2
+typing-extensions==4.13.2
     # via
     #   fourcipp
     #   python-utils
