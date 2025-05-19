@@ -43,12 +43,6 @@ Install all requirements with:
 pip install -e .
 ```
 
-Finally, you need to force the installation of a specific `lnmmeshio` version due to a dependency mismatch with:
-```bash
-pip install lnmmeshio==5.6.2 --force
-```
-We are already working on the resolution of this issue.
-
 ## Using the 4C-Webviewer
 
 To start the webviewer, in the conda environment run:
@@ -83,7 +77,7 @@ pip-compile --all-extras --output-file=requirements.txt --upgrade requirements.i
 
 Please note that this project is still at an early stage of development.
 
-We encourage you to test the current state and provide feedback on what functionality would help you by opening an issue or a discussion, or even contribute to the progress yourself.
+We encourage you to test the current state and provide feedback on what functionality would help you by adding to the corresponding [issue](https://github.com/4C-multiphysics/4C-webviewer/issues/1) or even contributing to the progress yourself.
 
 
 ## License
