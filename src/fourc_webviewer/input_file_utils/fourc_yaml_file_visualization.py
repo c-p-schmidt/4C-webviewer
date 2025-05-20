@@ -1,16 +1,17 @@
 """Input file visualization."""
 
+import copy
+import re
+from pathlib import Path
+
 import lnmmeshio
 import numpy as np
 import plotly.express as px
-import re
-import copy
-from pathlib import Path
 
 from fourc_webviewer.input_file_utils.io_utils import (
     add_fourc_yaml_file_data_to_dis,
+    safely_parse_string,
 )
-from pathlib import Path
 
 
 def convert_to_vtu(fourc_yaml_file_path, temp_dir):
@@ -153,7 +154,9 @@ def return_function_from_funct_string(funct_string):
             r"heaviside\((.*?)\)", r"heaviside(\1,0)", funct_string_copy
         )  # usage of raw strings, (.*?) is a non greedy capturing, and \1 replaces the captured value
 
-        return eval(funct_string_copy)  # this parses string in as a function
+        return safely_parse_string(
+            funct_string_copy
+        )  # this parses string in as a function
 
     return np.frompyfunc(funct_using_eval, 4, 1)
 

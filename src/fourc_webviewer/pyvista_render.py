@@ -1,13 +1,11 @@
-"""Import modules"""
+"""Import modules."""
 
-import re
 import pyvista as pv
 from pyvista.trame.ui import plotter_ui
 
-"""Global variables"""
-PV_SPHERE_FRAC_SCALE = (
-    1.0 / 50.0
-)  # factor which scales the spheres used to represent nodal design conditions and result descriptions with respect to the problem length scale
+# Global variable
+# factor which scales the spheres used to represent nodal design conditions and result descriptions with respect to the problem length scale
+PV_SPHERE_FRAC_SCALE = 1.0 / 50.0
 
 
 def update_pv_plotter(
@@ -34,7 +32,6 @@ def update_pv_plotter(
                                                             points (nodes) where the selected result description is prescribed.
     Returns:
         pyvista.Plotter(): plotter object to be integrated in the GUI
-
     """
 
     # clear plotter actors
@@ -83,14 +80,13 @@ def update_pv_plotter(
 
 
 def get_problem_length_scale(pv_mesh):
-    """Compute problem length scale from the bounds of the considered
-    pyvista mesh.
+    """Compute problem length scale from the bounds of the considered pyvista
+    mesh.
 
     Args:
          pv_mesh (pyvista.UnstructuredGrid): geometry mesh
     Returns:
         float: maximum coordinate bound difference in 3-dimensions
-
     """
 
     # get maximum bound difference as the problem length scale

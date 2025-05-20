@@ -1,23 +1,25 @@
+import plotly
+from pyvista.trame.ui import plotter_ui
+
 from fourc_webviewer.input_file_utils.fourc_yaml_file_visualization import (
     function_plot_figure,
 )
-from pyvista.trame.ui import plotter_ui
-import plotly
 
 CLIENT_TYPE = "vue3"
 if CLIENT_TYPE == "vue2":
-    from trame.widgets import vuetify2 as vuetify
     from trame.ui.vuetify2 import SinglePageWithDrawerLayout
+    from trame.widgets import vuetify2 as vuetify
     from trame_vuetify.widgets.vuetify import HtmlElement
 else:
-    from trame.widgets import vuetify3 as vuetify
     from trame.ui.vuetify3 import SinglePageWithDrawerLayout
+    from trame.widgets import vuetify3 as vuetify
     from trame_vuetify.widgets.vuetify3 import HtmlElement
 from trame.widgets import html, plotly
 
 
 class VFileInput(HtmlElement):
-    """Custom VFileInput element, since the one provided by trame does not currently support all relevant attributes, such as e.g. 'accept'."""
+    """Custom VFileInput element, since the one provided by trame does not
+    currently support all relevant attributes, such as e.g. 'accept'."""
 
     def __init__(self, children=None, **kwargs):
         super().__init__("v-file-input", children, **kwargs)
@@ -410,7 +412,6 @@ def _prop_value_table():
                 )
 
         with html.Tbody():
-
             with html.Tr(
                 v_if=(
                     "general_sections[selected_main_section_name] && general_sections[selected_main_section_name][selected_section_name] && Object.keys(general_sections[selected_main_section_name][selected_section_name]).length >= 1",
@@ -447,7 +448,6 @@ def _materials_panel():
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['materials_section']"
         ),
     ):
-
         ##################################
         # MATERIALS OVERVIEW #############
         ##################################
@@ -576,7 +576,6 @@ def _materials_panel():
                         key="param_index",
                         classes="d-flex align-center",
                     ):
-
                         vuetify.VIcon(
                             "mdi-circle-medium",
                             color="primary",
@@ -702,7 +701,6 @@ def _design_conditions_panel():
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['design_conditions_section']"
         ),
     ):
-
         # dropdown for geometries: POINT, LINE, SURF, VOL
         vuetify.VSelect(
             v_if=("Object.keys(dc_sections).length > 0",),
@@ -816,7 +814,6 @@ def _design_conditions_panel():
                                         key="param_index",
                                         classes="d-flex align-center",
                                     ):
-
                                         vuetify.VIcon(
                                             "mdi-circle-small",
                                             color="primary",
@@ -942,7 +939,6 @@ def _result_description_panel():
                     key="param_index",
                     classes="d-flex align-center",
                 ):
-
                     vuetify.VIcon(
                         "mdi-circle-medium",
                         color="primary",

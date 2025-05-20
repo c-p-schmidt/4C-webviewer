@@ -2,17 +2,16 @@
 #                               IMPORT SECTION                                 #
 # ------------------------------------------------------------------------------#
 
+from fourc_webviewer.fourc_webserver import FourCWebServer
 from fourc_webviewer_default_files import (
     DEFAULT_INPUT_FILE,
 )
-from fourc_webviewer.fourc_webserver import FourCWebServer
 
 # specify server port for the app to run on
 SERVER_PORT = 12345
 
 
 def run_webviewer(fourc_yaml_file=None):
-
     if fourc_yaml_file is None:
         fourc_yaml_file = str(DEFAULT_INPUT_FILE)
 

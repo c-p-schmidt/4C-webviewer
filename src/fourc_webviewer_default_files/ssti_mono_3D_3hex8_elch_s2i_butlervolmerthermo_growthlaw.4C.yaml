@@ -1,9 +1,7 @@
 TITLE:
-  - 'simple, academic test case for monolithic scalar-structure-thermo interaction involving electrochemistry
-    and electrode-electrolyte interface coupling:'
+  - 'simple, academic test case for monolithic scalar-structure-thermo interaction involving electrochemistry and electrode-electrolyte interface coupling:'
   - '- three-dimensional, box-shaped domain with two two-dimensional electrode-electrolyte interfaces'
-  - '- three hex8 elements in a row, divided into three groups with one element each, representing anode,
-    electrolyte, and cathode with constant initial concentrations, potentials and temperature'
+  - '- three hex8 elements in a row, divided into three groups with one element each, representing anode, electrolyte, and cathode with constant initial concentrations, potentials and temperature'
   - '- Butler-Volmer charge transfer kinetics and matching interface nodes at electrode-electrolyte interfaces'
   - '- concentration in electrolyte held constant by Dirichlet volume condition'
   - '- Dirichlet boundary condition for potential at anode-side current collector interface'

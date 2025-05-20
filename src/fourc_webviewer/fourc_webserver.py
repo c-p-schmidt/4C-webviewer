@@ -1,24 +1,26 @@
-import tempfile
-import re
-import numpy as np
 import copy
+import re
+import tempfile
+from pathlib import Path
+
+import numpy as np
+import pyvista as pv
 from trame.app import get_server
 from trame.decorators import TrameApp, change, controller
-from pathlib import Path
-from fourc_webviewer.input_file_utils.io_utils import (
-    read_fourc_yaml_file,
-    write_fourc_yaml_file,
-    create_file_object_for_browser,
-    get_master_and_linked_material_indices,
-)
+
+import fourc_webviewer.pyvista_render as pv_render
 from fourc_webviewer.gui_utils import create_gui
 from fourc_webviewer.input_file_utils.fourc_yaml_file_visualization import (
     convert_to_vtu,
     function_plot_figure,
 )
-from fourc_webviewer.python_utils import find_value_recursively, convert_string2number
-import pyvista as pv
-import fourc_webviewer.pyvista_render as pv_render
+from fourc_webviewer.input_file_utils.io_utils import (
+    create_file_object_for_browser,
+    get_master_and_linked_material_indices,
+    read_fourc_yaml_file,
+    write_fourc_yaml_file,
+)
+from fourc_webviewer.python_utils import convert_string2number, find_value_recursively
 
 # always set pyvista to plot off screen with Trame
 pv.OFF_SCREEN = True
@@ -26,9 +28,9 @@ pv.OFF_SCREEN = True
 
 @TrameApp()
 class FourCWebServer:
-    """Trame webserver for FourC input files containing the server and
-    its components (e.g., state, controller) along with other relevant
-    server-only variables."""
+    """Trame webserver for FourC input files containing the server and its
+    components (e.g., state, controller) along with other relevant server-only
+    variables."""
 
     def __init__(self, page_title, fourc_yaml_file):
         """Constructor.
@@ -116,9 +118,9 @@ class FourCWebServer:
         return self.server.controller
 
     def init_state_and_server_vars(self):
-        """Initialize state variables (reactive shared state) and
-        server-side only variables, particularly the ones related to the fourc yaml content.
-        """
+        """Initialize state variables (reactive shared state) and server-side
+        only variables, particularly the ones related to the fourc yaml
+        content."""
 
         ### --- self.state VARIABLES FOR INPUT FILE CONTENT --- ###
         # name of the 4C yaml file
@@ -189,8 +191,10 @@ class FourCWebServer:
         return
 
     def sync_server_vars_from_state(self):
-        """Syncs the server variables containing the input file content
-        based on the current state variables. We call this before exporting to a new input file.
+        """Syncs the server variables containing the input file content based
+        on the current state variables.
+
+        We call this before exporting to a new input file.
         """
 
         # sync description
@@ -206,8 +210,9 @@ class FourCWebServer:
         self.sync_funct_section_from_state()
 
     def update_pyvista_render_objects(self, init_rendering=False):
-        """Update/ initialize pyvista view objects (reader, thresholds, global COS, ...) for the rendered window. The saved
-        vtu file path is hereby utilized.
+        """Update/ initialize pyvista view objects (reader, thresholds, global
+        COS, ...) for the rendered window. The saved vtu file path is hereby
+        utilized.
 
         Args:
             init_rendering (bool): perform initialization tasks? (True:
@@ -236,20 +241,20 @@ class FourCWebServer:
             self._server_vars["pv_mesh"]
         ).threshold(
             value=1.0,
-            scalars=f"d{self.state.selected_dc_geometry_type.lower()}{self.state.selected_dc_entity.replace("E", "")}",
+            scalars=f"d{self.state.selected_dc_geometry_type.lower()}{self.state.selected_dc_entity.replace('E', '')}",
             preference="point",
         )
 
         # get coords of node with prescribed result description
-        self._server_vars[
-            "pv_selected_result_description_node_coords"
-        ] = self._server_vars["pv_mesh"].points[
-            self.state.result_description_section[
-                self.state.selected_result_description_id
-            ]["PARAMETERS"]["NODE"]
-            - 1,
-            :,
-        ]
+        self._server_vars["pv_selected_result_description_node_coords"] = (
+            self._server_vars["pv_mesh"].points[
+                self.state.result_description_section[
+                    self.state.selected_result_description_id
+                ]["PARAMETERS"]["NODE"]
+                - 1,
+                :,
+            ]
+        )
 
         # update plotter / rendering
         pv_render.update_pv_plotter(
@@ -261,9 +266,11 @@ class FourCWebServer:
         )
 
     def init_general_sections_state_and_server_vars(self):
-        """Get the general sections and cluster them into subsections. For example, SCALAR TRANSPORT DYNAMIC / SCALAR TRANSPORT DYNAMIC/STABILIZATION, SCALAR TRANSPORT DYNAMIC/S2I COUPLING
-        are all subsections contained within the same main section SCALAR
-        TRANSPORT DYNAMIC. Then we add dedicated state and server variables.
+        """Get the general sections and cluster them into subsections. For
+        example, SCALAR TRANSPORT DYNAMIC / SCALAR TRANSPORT
+        DYNAMIC/STABILIZATION, SCALAR TRANSPORT DYNAMIC/S2I COUPLING are all
+        subsections contained within the same main section SCALAR TRANSPORT
+        DYNAMIC. Then we add dedicated state and server variables.
 
         NOTE: we only look at the general setting sections. Hence, we
         exclude the sections related to:
@@ -296,10 +303,8 @@ class FourCWebServer:
                 not any(substr in section_name for substr in substr_to_exclude)
                 and not section_name in sect_to_exclude
             ):  # account for sections to be excluded as defined above
-
                 # check if the current section is "SOLVER<number>"
                 if re.match("^SOLVER [0-9]+", section_name):  # yes
-
                     # if the main section "SOLVERS" is not already saved,
                     # create dedicated key
                     if "SOLVERS" not in self.state.general_sections.keys():
@@ -310,7 +315,6 @@ class FourCWebServer:
 
                 # general, no-solver section
                 else:
-
                     # get main section name
                     main_section_name = section_name.split("/")[0]
 
@@ -319,14 +323,13 @@ class FourCWebServer:
                         self.state.general_sections[main_section_name] = {}
 
                     # add subsection
-                    self.state.general_sections[main_section_name][
-                        section_name
-                    ] = section_data
+                    self.state.general_sections[main_section_name][section_name] = (
+                        section_data
+                    )
 
     def sync_general_sections_from_state(self):
-        """Syncs the server-side general sections based on the current
-        values of the dedicated state variables.
-        """
+        """Syncs the server-side general sections based on the current values
+        of the dedicated state variables."""
 
         # copy the current general sections state variables
         copy_general_sections = self.state.general_sections
@@ -339,8 +342,8 @@ class FourCWebServer:
                 self._server_vars["fourc_yaml_content"][section] = section_data
 
     def init_materials_state_and_server_vars(self):
-        """Initialize state and server-side variables related to the MATERIALS section
-        and the CLONING MATERIAL MAP."""
+        """Initialize state and server-side variables related to the MATERIALS
+        section and the CLONING MATERIAL MAP."""
 
         # get the materials (used only as a reference for CLONING_MATERIAL_MAP -> source)
         materials_section = copy.deepcopy(
@@ -404,9 +407,9 @@ class FourCWebServer:
             ):
                 if mat_id in linked_material_indices_item:
                     # add linked material indices
-                    mat_item_val["RELATIONSHIPS"][
-                        "LINKED MATERIALS"
-                    ] = linked_material_indices_item
+                    mat_item_val["RELATIONSHIPS"]["LINKED MATERIALS"] = (
+                        linked_material_indices_item
+                    )
 
                     # add master material index
                     mat_item_val["RELATIONSHIPS"]["MASTER MATERIAL"] = material_indices[
@@ -417,7 +420,7 @@ class FourCWebServer:
                     break
             if not found_linked_mat_indices:
                 raise Exception(
-                    f"Did not find linked material indices for MAT {self.state.materials_section[mat_name]["MAT"]}"
+                    f"Did not find linked material indices for MAT {self.state.materials_section[mat_name]['MAT']}"
                 )
 
         # set user selection variables
@@ -433,9 +436,9 @@ class FourCWebServer:
             )
 
     def sync_materials_sections_from_state(self):
-        """Syncs the server-side materials (and cloning material map) sections based on the current
-        values of the relevant materials state variables.
-        """
+        """Syncs the server-side materials (and cloning material map) sections
+        based on the current values of the relevant materials state
+        variables."""
 
         # deep copy the current state variables
         copy_materials_section = copy.deepcopy(self.state.materials_section)
@@ -466,13 +469,13 @@ class FourCWebServer:
         # write to server-side content
         self._server_vars["fourc_yaml_content"]["MATERIALS"] = new_materials_section
         if new_cloning_material_map_section:
-            self._server_vars["fourc_yaml_content"][
-                "CLONING MATERIAL MAP"
-            ] = new_cloning_material_map_section
+            self._server_vars["fourc_yaml_content"]["CLONING MATERIAL MAP"] = (
+                new_cloning_material_map_section
+            )
 
     def init_design_conditions_state_and_server_vars(self):
-        """Initialize the state and server variables for the design
-        condition sections."""
+        """Initialize the state and server variables for the design condition
+        sections."""
 
         # get all sections starting with "DESIGN" into a dict: these are
         # our design condition items
@@ -560,9 +563,8 @@ class FourCWebServer:
                 )
 
     def sync_design_conditions_sections_from_state(self):
-        """Syncs the server-side design sections based on the current
-        values of the dedicated state variables.
-        """
+        """Syncs the server-side design sections based on the current values of
+        the dedicated state variables."""
 
         # loop through geometry types
         new_dc_sections = {}
@@ -591,7 +593,8 @@ class FourCWebServer:
         self._server_vars["fourc_yaml_content"].add(new_dc_sections)
 
     def init_result_description_state_and_server_vars(self):
-        """Initialize the state and server variables for the result description section."""
+        """Initialize the state and server variables for the result description
+        section."""
 
         # get result description section
         result_description_section = copy.deepcopy(
@@ -637,9 +640,8 @@ class FourCWebServer:
             )
 
     def sync_result_description_section_from_state(self):
-        """Syncs the server-side result description section based on the current
-        values of the dedicated state variables.
-        """
+        """Syncs the server-side result description section based on the
+        current values of the dedicated state variables."""
 
         # initialize empty list as the result description section
         copy_result_description_section = copy.deepcopy(
@@ -660,10 +662,10 @@ class FourCWebServer:
             # get item in the yaml file structure
             new_result_description_section.append({field: params})
 
-        # set result descripton section on the server
-        self._server_vars["fourc_yaml_content"][
-            "RESULT DESCRIPTION"
-        ] = new_result_description_section
+        # set result description section on the server
+        self._server_vars["fourc_yaml_content"]["RESULT DESCRIPTION"] = (
+            new_result_description_section
+        )
 
     def init_funct_state_and_server_vars(self):
         """Initialize the state and server variables for the function
@@ -688,7 +690,7 @@ class FourCWebServer:
             # If 'COMPONENT' is not provided, we add 'COMPONENT': 0 to
             # the dictionary
 
-            # check if the function data contains only one commponent
+            # check if the function data contains only one component
             # with the type 'SYMBOLIC_FUNCTION_OF_SPACE_TIME' as the
             # single component key -> in this case, we append
             # 'COMPONENT': 0
@@ -753,9 +755,8 @@ class FourCWebServer:
         )
 
     def sync_funct_section_from_state(self):
-        """Syncs the server-side functions section based on the current
-        values of the dedicated state variables.
-        """
+        """Syncs the server-side functions section based on the current values
+        of the dedicated state variables."""
 
         # copy state function sections and create new object to set our
         # server variables to, afterwards
@@ -887,7 +888,6 @@ class FourCWebServer:
 
     @change("selected_dc_geometry_type")
     def change_selected_dc_geometry_type(self, selected_dc_geometry_type, **kwargs):
-
         # change entity to the first of the selected geometry
         self.state.selected_dc_entity = next(
             iter(self.state.dc_sections[selected_dc_geometry_type])
@@ -910,7 +910,6 @@ class FourCWebServer:
 
     @change("selected_dc_entity")
     def change_selected_dc_entity(self, selected_dc_entity, **kwargs):
-
         # change selected condition for the geometry-entity combination
         self.state.selected_dc_condition = next(
             iter(
@@ -930,7 +929,6 @@ class FourCWebServer:
     def change_selected_result_description_id(
         self, selected_result_description_id, **kwargs
     ):
-
         # update plotter / render objects
         self.update_pyvista_render_objects()
 
@@ -1014,14 +1012,14 @@ class FourCWebServer:
 
     @controller.set("click_info_button")
     def click_info_button(self, **kwargs):
-        """Toggles the info mode, which displays a bottom sheet
-        containing file name and simulation description."""
+        """Toggles the info mode, which displays a bottom sheet containing file
+        name and simulation description."""
         self.state.info_mode = not self.state.info_mode
 
     @controller.set("click_export_button")
     def click_export_button(self, **kwargs):
-        """Toggles the export mode, which displays a bottom sheet
-        with export settings."""
+        """Toggles the export mode, which displays a bottom sheet with export
+        settings."""
         self.state.export_mode = not self.state.export_mode
 
     @controller.set("click_convert_button")
@@ -1069,7 +1067,7 @@ class FourCWebServer:
 
     @controller.set("click_save_button")
     def click_save_button(self, **kwargs):
-        """Save the current content to a new fourc_yaml content"""
+        """Save the current content to a new fourc_yaml content."""
         # sync server-side variables
         self.sync_server_vars_from_state()
 
@@ -1087,16 +1085,15 @@ class FourCWebServer:
     """ --- Other helper functions"""
 
     def determine_master_mat_ind_for_current_selection(self):
-        """Determines the real master/source material of the currently
-        selected material. Accounts for CLONING MATERIAL MAP by going
-        one step further and checking for the real source material
-        recursively (important in multi-field problem settings, e.g., in
-        SSTI, the procedure finds the structural material).
+        """Determines the real master/source material of the currently selected
+        material. Accounts for CLONING MATERIAL MAP by going one step further
+        and checking for the real source material recursively (important in
+        multi-field problem settings, e.g., in SSTI, the procedure finds the
+        structural material).
 
         Returns:
             int: id of the real master material of the currently
                 selected material.
-
         """
         # get id of the master material
         master_mat_id = self.state.materials_section[self.state.selected_material][
