@@ -92,6 +92,8 @@ def write_fourc_yaml_file(fourc_yaml_content, new_fourc_yaml_file):
 
 
 def add_fourc_yaml_file_data_to_dis(dis):
+    """Adds further data contained within the yaml file (e.g. material id) to
+    the discretization from lnmmeshio."""
     dis.compute_ids(zero_based=False)
 
     # write node data

@@ -1,3 +1,7 @@
+"""This module defines the FourCWebServer class, which manages the application
+state, synchronizes server variables, and handles PyVista rendering for the 4C
+web viewer."""
+
 import copy
 import re
 import tempfile
@@ -109,11 +113,14 @@ class FourCWebServer:
 
     @property
     def state(self):
+        """Get state."""
+
         # self.state contains all the state variables to be shared between server and client
         return self.server.state
 
     @property
     def ctrl(self):
+        """Get controller."""
         # self.ctrl contains all the control functions callable on both the Javascript client-side and the Python server (running on the Python server)
         return self.server.controller
 
@@ -773,6 +780,8 @@ class FourCWebServer:
                 )
 
     def init_mode_state_vars(self):
+        """Initialize state variables related to mode changes (edit mode, view
+        mode) and statuses (e.g. read-in status)."""
         # initialize the read-in status and its possible choices
         self.state.all_read_in_statuses = {
             "success": "SUCCESS",  # successful read-in of the file
@@ -821,6 +830,8 @@ class FourCWebServer:
     ################################################
     @change("fourc_yaml_file")
     def change_fourc_yaml_file(self, fourc_yaml_file, **kwargs):
+        """Reaction to change of state.fourc_yaml_file."""
+
         # create temporary fourc yaml file from the content of the given file
         temp_fourc_yaml_file = Path(
             self._server_vars["temp_dir_object"].name, fourc_yaml_file["name"]
@@ -848,6 +859,7 @@ class FourCWebServer:
 
     @change("export_fourc_yaml_path")
     def change_export_fourc_yaml_path(self, export_fourc_yaml_path, **kwargs):
+        """Reaction to change of state.export_fourc_yaml_path."""
         # set the export status to info
         self.state.export_status = self.state.all_export_statuses["info"]
 
@@ -856,6 +868,7 @@ class FourCWebServer:
     ################################################
     @change("selected_main_section_name")
     def change_selected_main_section_name(self, selected_main_section_name, **kwargs):
+        """Reaction to change of state.selected_main_section_name."""
         # set selected section name to the first one within the selected
         # main section
         self.state.selected_section_name = self.state.section_names[
@@ -864,6 +877,7 @@ class FourCWebServer:
 
     @change("selected_material")
     def change_selected_material(self, selected_material, **kwargs):
+        """Reaction to change of state.selected_material."""
         # we need to select the material region based on the newly selected
         # material (if we are not in an initial rendering scenario)
         if self._server_vars["render_count"]["change_selected_material"] > 0:
@@ -888,6 +902,7 @@ class FourCWebServer:
 
     @change("selected_dc_geometry_type")
     def change_selected_dc_geometry_type(self, selected_dc_geometry_type, **kwargs):
+        """Reaction to change of state.selected_dc_geometry_type."""
         # change entity to the first of the selected geometry
         self.state.selected_dc_entity = next(
             iter(self.state.dc_sections[selected_dc_geometry_type])
@@ -910,6 +925,7 @@ class FourCWebServer:
 
     @change("selected_dc_entity")
     def change_selected_dc_entity(self, selected_dc_entity, **kwargs):
+        """Reaction to change of state.selected_dc_entity."""
         # change selected condition for the geometry-entity combination
         self.state.selected_dc_condition = next(
             iter(
@@ -929,6 +945,7 @@ class FourCWebServer:
     def change_selected_result_description_id(
         self, selected_result_description_id, **kwargs
     ):
+        """Reaction to change of state.selected_result_description_id."""
         # update plotter / render objects
         self.update_pyvista_render_objects()
 
@@ -937,6 +954,7 @@ class FourCWebServer:
 
     @change("selected_funct")
     def change_selected_funct(self, selected_funct, **kwargs):
+        """Reaction to change of state.selected_funct."""
         # set the selected funct item to the first within the newly
         # selected funct
         self.state.selected_funct_item = next(
@@ -951,6 +969,7 @@ class FourCWebServer:
 
     @change("selected_funct_item")
     def change_selected_funct_item(self, selected_funct_item, **kwargs):
+        """Reaction to change of state.selected_funct_item."""
         # update plotly figure
         if self.state.funct_section[self.state.selected_funct][
             self.state.selected_funct_item
@@ -962,6 +981,7 @@ class FourCWebServer:
     ################################################
     @change("funct_plot")
     def change_funct_plot(self, funct_plot, **kwargs):
+        """Reaction to change of state.funct_plot."""
         # update plotly figure
         if self.state.funct_section[self.state.selected_funct][
             self.state.selected_funct_item
@@ -970,6 +990,7 @@ class FourCWebServer:
 
     @change("funct_section")
     def change_funct_section(self, funct_section, **kwargs):
+        """Reaction to change of state.funct_section."""
         # update plotly figure
         if self.state.funct_section[self.state.selected_funct][
             self.state.selected_funct_item
@@ -980,7 +1001,8 @@ class FourCWebServer:
     # MODE CHANGES #################################
     ################################################
     @change("edit_mode")
-    def on_edit_mode_changed(self, edit_mode, **kwargs):
+    def change_edit_mode(self, edit_mode, **kwargs):
+        """Reaction to change of state.edit_mode."""
         # cast entered string values from VTextField (edit mode) to
         # numbers
         if (
@@ -1004,7 +1026,8 @@ class FourCWebServer:
             # self.state.funct_section = convert_string2number(self.state.funct_section)
 
     @change("export_mode")
-    def on_export_mode_changed(self, export_mode, **kwargs):
+    def change_export_mode(self, export_mode, **kwargs):
+        """Reaction to change of state.export_mode."""
         # revert export status to "INFO"
         self.state.export_status = self.state.all_export_statuses["info"]
 
@@ -1126,4 +1149,5 @@ class FourCWebServer:
         return master_mat_id
 
     def cleanup(self):
+        """Perform cleanup tasks for the webserver."""
         self._server_vars["temp_dir_object"].cleanup()

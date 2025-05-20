@@ -1,3 +1,5 @@
+"""Specifies the GUI layout."""
+
 import plotly
 from pyvista.trame.ui import plotter_ui
 
@@ -22,6 +24,7 @@ class VFileInput(HtmlElement):
     currently support all relevant attributes, such as e.g. 'accept'."""
 
     def __init__(self, children=None, **kwargs):
+        """Initialize custom VFileInput element."""
         super().__init__("v-file-input", children, **kwargs)
         self._attr_names += [
             "accept",
@@ -101,6 +104,7 @@ class VFileInput(HtmlElement):
 
 
 def _toolbar(server_controller):
+    """Toolbar layout."""
     VFileInput(
         label="Input file",
         v_model=("fourc_yaml_file",),
@@ -131,6 +135,7 @@ def _toolbar(server_controller):
 
 
 def _bottom_sheet_info():
+    """Bottom sheet layout (INFO mode)."""
     with vuetify.VBottomSheet(v_model=("info_mode",), inset=True):
         with vuetify.VCard(
             classes="text-center",
@@ -169,6 +174,7 @@ def _bottom_sheet_info():
 
 
 def _bottom_sheet_export(server_controller):
+    """Bottom sheet layout (EXPORT mode)."""
     with vuetify.VBottomSheet(v_model=("export_mode",), inset=True):
         with vuetify.VCard(classes="text-center", height=250, title="Export"):
             with vuetify.VCardText():
@@ -202,6 +208,7 @@ def _bottom_sheet_export(server_controller):
 
 
 def _sections_dropdown():
+    """Section dropdown layout."""
     vuetify.VSelect(
         v_model=("selected_main_section_name",),
         items=("Object.keys(section_names)",),
@@ -214,6 +221,7 @@ def _sections_dropdown():
 
 
 def _functions_panel(server):
+    """Functions panel layout."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['funct_section']"
@@ -395,6 +403,7 @@ def _functions_panel(server):
 
 
 def _prop_value_table():
+    """Table (property - value) layout (for general sections)."""
     with vuetify.VTable(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['general_section']",
@@ -443,6 +452,7 @@ def _prop_value_table():
 
 
 def _materials_panel():
+    """Materials panel layout."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['materials_section']"
@@ -696,6 +706,7 @@ def _materials_panel():
 
 
 def _design_conditions_panel():
+    """Layout for the design conditions panel."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['design_conditions_section']"
@@ -831,6 +842,7 @@ def _design_conditions_panel():
 
 
 def _result_description_panel():
+    """Layout for the result description panel."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['result_description_section']",
@@ -1007,6 +1019,8 @@ def _result_description_panel():
 
 
 def create_gui(server, render_window):
+    """Creates the graphical user interface based on the defined layout
+    elements."""
     with SinglePageWithDrawerLayout(server) as layout:
         layout.title.set_text("4C Webviewer")
 

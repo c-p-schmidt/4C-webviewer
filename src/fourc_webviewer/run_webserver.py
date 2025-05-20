@@ -1,8 +1,5 @@
-# ------------------------------------------------------------------------------#
-#                               IMPORT SECTION                                 #
-# ------------------------------------------------------------------------------#
+"""Utility to run the webserver on a defined port."""
 
-from fourc_webviewer.fourc_webserver import FourCWebServer
 from fourc_webviewer_default_files import (
     DEFAULT_INPUT_FILE,
 )
@@ -12,6 +9,9 @@ SERVER_PORT = 12345
 
 
 def run_webviewer(fourc_yaml_file=None):
+    """Runs the webviewer by creating a dedicated webserver object, starting it
+    and cleaning up afterwards."""
+
     if fourc_yaml_file is None:
         fourc_yaml_file = str(DEFAULT_INPUT_FILE)
 

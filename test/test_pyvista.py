@@ -1,3 +1,5 @@
+"""Tests related to pyvista plotting."""
+
 import tempfile
 from pathlib import Path
 
@@ -18,6 +20,7 @@ pl = pv.Plotter()
 
 @server.state.change("file_exchange")
 def handle(file_exchange, **kwargs) -> None:
+    """Reaction to file exchange."""
     if file_exchange:
         file = ClientFile(file_exchange[0])
         if file.content:

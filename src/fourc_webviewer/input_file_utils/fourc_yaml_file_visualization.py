@@ -131,6 +131,18 @@ def return_function_from_funct_string(funct_string):
     """
 
     def funct_using_eval(x, y, z, t):
+        """Evaluate function expression for given positional x, y, z
+        coordinates and time t values.
+
+        Args:
+            x (double): x-coordinate
+            y (double): y-coordinate
+            z (double): z-coordinate
+            t (double): time t
+
+        Returns:
+            parsed object using ast.literal_eval
+        """
         # defined functions to be replaced: <def_funct> becomes <np.funct>
         def_funct = ["exp", "sqrt", "log", "sin", "cos", "tan", "heaviside"]
 
