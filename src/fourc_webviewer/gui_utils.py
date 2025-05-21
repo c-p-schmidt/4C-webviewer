@@ -1,25 +1,30 @@
+"""Specifies the GUI layout."""
+
+import plotly
+from pyvista.trame.ui import plotter_ui
+
 from fourc_webviewer.input_file_utils.fourc_yaml_file_visualization import (
     function_plot_figure,
 )
-from pyvista.trame.ui import plotter_ui
-import plotly
 
 CLIENT_TYPE = "vue3"
 if CLIENT_TYPE == "vue2":
-    from trame.widgets import vuetify2 as vuetify
     from trame.ui.vuetify2 import SinglePageWithDrawerLayout
+    from trame.widgets import vuetify2 as vuetify
     from trame_vuetify.widgets.vuetify import HtmlElement
 else:
-    from trame.widgets import vuetify3 as vuetify
     from trame.ui.vuetify3 import SinglePageWithDrawerLayout
+    from trame.widgets import vuetify3 as vuetify
     from trame_vuetify.widgets.vuetify3 import HtmlElement
 from trame.widgets import html, plotly
 
 
 class VFileInput(HtmlElement):
-    """Custom VFileInput element, since the one provided by trame does not currently support all relevant attributes, such as e.g. 'accept'."""
+    """Custom VFileInput element, since the one provided by trame does not
+    currently support all relevant attributes, such as e.g. 'accept'."""
 
     def __init__(self, children=None, **kwargs):
+        """Initialize custom VFileInput element."""
         super().__init__("v-file-input", children, **kwargs)
         self._attr_names += [
             "accept",
@@ -99,6 +104,7 @@ class VFileInput(HtmlElement):
 
 
 def _toolbar(server_controller):
+    """Toolbar layout."""
     VFileInput(
         label="Input file",
         v_model=("fourc_yaml_file",),
@@ -129,6 +135,7 @@ def _toolbar(server_controller):
 
 
 def _bottom_sheet_info():
+    """Bottom sheet layout (INFO mode)."""
     with vuetify.VBottomSheet(v_model=("info_mode",), inset=True):
         with vuetify.VCard(
             classes="text-center",
@@ -167,6 +174,7 @@ def _bottom_sheet_info():
 
 
 def _bottom_sheet_export(server_controller):
+    """Bottom sheet layout (EXPORT mode)."""
     with vuetify.VBottomSheet(v_model=("export_mode",), inset=True):
         with vuetify.VCard(classes="text-center", height=250, title="Export"):
             with vuetify.VCardText():
@@ -200,6 +208,7 @@ def _bottom_sheet_export(server_controller):
 
 
 def _sections_dropdown():
+    """Section dropdown layout."""
     vuetify.VSelect(
         v_model=("selected_main_section_name",),
         items=("Object.keys(section_names)",),
@@ -212,6 +221,7 @@ def _sections_dropdown():
 
 
 def _functions_panel(server):
+    """Functions panel layout."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['funct_section']"
@@ -393,6 +403,7 @@ def _functions_panel(server):
 
 
 def _prop_value_table():
+    """Table (property - value) layout (for general sections)."""
     with vuetify.VTable(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['general_section']",
@@ -410,7 +421,6 @@ def _prop_value_table():
                 )
 
         with html.Tbody():
-
             with html.Tr(
                 v_if=(
                     "general_sections[selected_main_section_name] && general_sections[selected_main_section_name][selected_section_name] && Object.keys(general_sections[selected_main_section_name][selected_section_name]).length >= 1",
@@ -442,12 +452,12 @@ def _prop_value_table():
 
 
 def _materials_panel():
+    """Materials panel layout."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['materials_section']"
         ),
     ):
-
         ##################################
         # MATERIALS OVERVIEW #############
         ##################################
@@ -576,7 +586,6 @@ def _materials_panel():
                         key="param_index",
                         classes="d-flex align-center",
                     ):
-
                         vuetify.VIcon(
                             "mdi-circle-medium",
                             color="primary",
@@ -697,12 +706,12 @@ def _materials_panel():
 
 
 def _design_conditions_panel():
+    """Layout for the design conditions panel."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['design_conditions_section']"
         ),
     ):
-
         # dropdown for geometries: POINT, LINE, SURF, VOL
         vuetify.VSelect(
             v_if=("Object.keys(dc_sections).length > 0",),
@@ -816,7 +825,6 @@ def _design_conditions_panel():
                                         key="param_index",
                                         classes="d-flex align-center",
                                     ):
-
                                         vuetify.VIcon(
                                             "mdi-circle-small",
                                             color="primary",
@@ -834,6 +842,7 @@ def _design_conditions_panel():
 
 
 def _result_description_panel():
+    """Layout for the result description panel."""
     with html.Div(
         v_if=(
             "section_names[selected_main_section_name]['content_mode'] == all_content_modes['result_description_section']",
@@ -942,7 +951,6 @@ def _result_description_panel():
                     key="param_index",
                     classes="d-flex align-center",
                 ):
-
                     vuetify.VIcon(
                         "mdi-circle-medium",
                         color="primary",
@@ -1011,6 +1019,8 @@ def _result_description_panel():
 
 
 def create_gui(server, render_window):
+    """Creates the graphical user interface based on the defined layout
+    elements."""
     with SinglePageWithDrawerLayout(server) as layout:
         layout.title.set_text("4C Webviewer")
 

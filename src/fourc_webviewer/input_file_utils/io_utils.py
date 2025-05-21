@@ -1,18 +1,19 @@
 """Input/output utilities for 4C input files."""
 
-import re
-import os
+import ast
 import copy
+import os
+import re
+from pathlib import Path
 
+from fourcipp.fourc_input import FourCInput
 
 from fourc_webviewer.python_utils import flatten_list
-from pathlib import Path
-from fourcipp.fourc_input import FourCInput
 
 
 def read_fourc_yaml_file(fourc_yaml_file):
-    """Read in a given fourc yaml file. Validation is performed within
-    the function.
+    """Read in a given fourc yaml file. Validation is performed within the
+    function.
 
     Args:
         fourc_yaml_file (str | Path): path to the fourc yaml file to be
@@ -91,6 +92,8 @@ def write_fourc_yaml_file(fourc_yaml_content, new_fourc_yaml_file):
 
 
 def add_fourc_yaml_file_data_to_dis(dis):
+    """Adds further data contained within the yaml file (e.g. material id) to
+    the discretization from lnmmeshio."""
     dis.compute_ids(zero_based=False)
 
     # write node data
@@ -120,8 +123,8 @@ def add_fourc_yaml_file_data_to_dis(dis):
             n.data["dvol{0}".format(dv.id)] = 1.0
 
     # write element data
-    for eles in dis.elements.values():
-        for ele in eles:
+    for elements in dis.elements.values():
+        for ele in elements:
             ele.data["element-id"] = ele.id
 
             # write mat
@@ -134,9 +137,9 @@ def add_fourc_yaml_file_data_to_dis(dis):
 
 
 def find_linked_materials(material_id, material_items):
-    """Find materials linked with a material number / id recursively
-    based on given material specifiers (parameters which refer to other
-    materials). This does NOT account for the cloning material map.
+    """Find materials linked with a material number / id recursively based on
+    given material specifiers (parameters which refer to other materials). This
+    does NOT account for the cloning material map.
 
     Args:
         material_number (int): material number, e.g. 1 for "MAT 1".
@@ -203,8 +206,8 @@ def find_linked_materials(material_id, material_items):
 
 def get_main_and_clustered_section_names(sections_list):
     """For given input file sections, determines all the main section names and
-    clusters all sections according to them.
-    Hereby, we look only at the general settings sections (we exclude functions, materials, boundary
+    clusters all sections according to them. Hereby, we look only at the
+    general settings sections (we exclude functions, materials, boundary
     conditions and geometry).
 
     For example,
@@ -234,9 +237,7 @@ def get_main_and_clustered_section_names(sections_list):
             # append the main section "FUNCTIONS"
             main_sections.append("FUNCTIONS")
 
-            clustered_sections_to_be_added = (
-                []
-            )  # list of clustered sections to be added
+            clustered_sections_to_be_added = []  # list of clustered sections to be added
             # add current element to clustered sections and remove it from sections
             clustered_sections_to_be_added.append(sections.pop(0))
 
@@ -285,9 +286,8 @@ def get_main_and_clustered_section_names(sections_list):
 
 
 def mat_specifiers():
-    """Get list of material parameter names which reference to other
-    parameter IDs.
-    """
+    """Get list of material parameter names which reference to other parameter
+    IDs."""
     return [
         "MATIDSEL",
         "INELDEFGRADFACIDS",
@@ -303,7 +303,8 @@ def mat_specifiers():
 def create_file_object_for_browser(
     fourc_yaml_name, fourc_yaml_lines, fourc_yaml_size, fourc_yaml_last_modified
 ):
-    """Creates a file object that can be utilized by the VFileInput object in the GUI toolbar.
+    """Creates a file object that can be utilized by the VFileInput object in
+    the GUI toolbar.
 
     Args:
         fourc_yaml_name (str): stem of the input file.
@@ -358,9 +359,7 @@ def get_master_and_linked_material_indices(materials_section):
     master_mat_indices = [mat_item["MAT"] for mat_item in materials_section]
 
     # check whether some of the master materials are actually related to others, and eliminate them from the master material index list
-    linked_mat_indices = (
-        []
-    )  # list of linked material indices for each of the "master" materials: [<list of linked materials for "MASTER" 1>, <list of linked materials for "MASTER" 2>,... ]
+    linked_mat_indices = []  # list of linked material indices for each of the "master" materials: [<list of linked materials for "MASTER" 1>, <list of linked materials for "MASTER" 2>,... ]
     for master_mat_index in master_mat_indices:
         linked_mat_indices.append(
             find_linked_materials(
@@ -382,7 +381,9 @@ def get_master_and_linked_material_indices(materials_section):
                 del master_mat_indices[next_master_list_ind]
                 del linked_mat_indices[next_master_list_ind]
             # next_master_ind stays the same
-            elif set(linked_mat_indices[curr_master_list_ind]).issubset(
+            elif set(
+                linked_mat_indices[curr_master_list_ind]
+            ).issubset(
                 set(linked_mat_indices[next_master_list_ind])
             ):  # this means that the current element is not truly a master -> has to be eliminated and we also break out of the for-loop
                 del master_mat_indices[curr_master_list_ind]
@@ -397,3 +398,25 @@ def get_master_and_linked_material_indices(materials_section):
         "master_mat_indices": master_mat_indices,
         "linked_mat_indices": linked_mat_indices,
     }
+
+
+def safely_parse_string(string):
+    """Safely evaluate a string containing a Python literal expression.
+
+    This function attempts to parse the input string using ast.literal_eval,
+    which safely evaluates strings containing Python literals such as strings,
+    numbers, tuples, lists, dicts, booleans, and None.
+
+    Parameters:
+        string (str): The string to evaluate.
+
+    Returns:
+        The evaluated Python object.
+
+    Raises:
+        ValueError: If the input string is not a valid Python literal.
+    """
+    try:
+        return ast.literal_eval(string)
+    except (ValueError, SyntaxError):
+        raise ValueError("Invalid input for literal_eval")

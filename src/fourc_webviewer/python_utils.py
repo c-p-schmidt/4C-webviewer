@@ -23,9 +23,8 @@ def flatten_list(input_list):
 
 
 def find_value_recursively(input_dict, target_key):
-    """Finds the value for a specified key within a nested dict
-    recursively. Helpful when going through the sections of the input
-    fourc yaml file.
+    """Finds the value for a specified key within a nested dict recursively.
+    Helpful when going through the sections of the input fourc yaml file.
 
     Args:
         input_dict (dict): input dict to be scanned for the target key
@@ -33,7 +32,6 @@ def find_value_recursively(input_dict, target_key):
 
     Returns:
         any | None: value of the specific target key
-
     """
     if isinstance(input_dict, dict):
         for key, value in input_dict.items():
@@ -51,9 +49,9 @@ def find_value_recursively(input_dict, target_key):
 
 
 def smart_string2number_cast(input_string):
-    """Casts an input_string to float / int if possible. Helpful when
-    dealing with automatic to-string conversions from vuetify.VTextField
-    input elements.
+    """Casts an input_string to float / int if possible. Helpful when dealing
+    with automatic to-string conversions from vuetify.VTextField input
+    elements.
 
     Args:
         input_string (str): input string to be converted.
@@ -71,8 +69,8 @@ def smart_string2number_cast(input_string):
 
 
 def convert_string2number(input_element):
-    """
-    Recursively converts strings to int/float where possible in nested lists or dictionaries.
+    """Recursively converts strings to int/float where possible in nested lists
+    or dictionaries.
 
     Args:
         input_element (str | list | dict): Input to be converted.
