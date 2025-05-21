@@ -597,7 +597,7 @@ class FourCWebServer:
         ].sections.items():
             if section_name.startswith("DESIGN "):
                 self._server_vars["fourc_yaml_content"].pop(section_name)
-        self._server_vars["fourc_yaml_content"].add(new_dc_sections)
+        self._server_vars["fourc_yaml_content"].combine_sections(new_dc_sections)
 
     def init_result_description_state_and_server_vars(self):
         """Initialize the state and server variables for the result description
