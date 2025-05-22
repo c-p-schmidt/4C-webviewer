@@ -1,5 +1,6 @@
 """Utility to run the webserver on a defined port."""
 
+from fourc_webviewer.fourc_webserver import FourCWebServer
 from fourc_webviewer_default_files import (
     DEFAULT_INPUT_FILE,
 )
