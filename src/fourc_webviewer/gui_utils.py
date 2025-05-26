@@ -105,7 +105,25 @@ class VFileInput(HtmlElement):
 
 def _toolbar(server_controller):
     """Toolbar layout."""
-    VFileInput(
+
+    html.Img(
+        src="https://raw.githubusercontent.com/4C-multiphysics/4C-webviewer/refs/heads/main/images/4C-logo/negative-white/4C-logo-landscape_negative.svg",
+        alt="4C Logo",
+        style="height: 50px; width: auto; filter: invert(1); padding-left: 20px",
+        class_="me-2",
+    )
+
+    vuetify.VToolbarTitle(
+        "4C Webviewer",
+        tag="h1",
+        shrink=True,
+        class_="mx-4",
+        style="font-weight: 500;",
+    )
+
+    vuetify.VSpacer()
+
+    vuetify.VFileInput(
         label="Input file",
         v_model=("fourc_yaml_file",),
         update_modelValue="flushState('fourc_yaml_file')",
@@ -1022,7 +1040,7 @@ def create_gui(server, render_window):
     """Creates the graphical user interface based on the defined layout
     elements."""
     with SinglePageWithDrawerLayout(server) as layout:
-        layout.title.set_text("4C Webviewer")
+        layout.title.hide()
 
         with layout.toolbar as toolbar:
             toolbar.height = 100
