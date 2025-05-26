@@ -36,13 +36,17 @@ class FourCWebServer:
     components (e.g., state, controller) along with other relevant server-only
     variables."""
 
-    def __init__(self, page_title, fourc_yaml_file):
+    def __init__(
+        self,
+        fourc_yaml_file,
+        page_title="4C Webviewer",
+    ):
         """Constructor.
 
         Args:
+            fourc_yaml_file (string|Path): path to the input fourc yaml file.
             page_title (string): page title appearing in the browser
             tab.
-            fourc_yaml_file (string|Path): path to the input fourc yaml file.
         """
 
         self.server = get_server()
