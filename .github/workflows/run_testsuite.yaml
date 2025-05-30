@@ -1,4 +1,4 @@
-name: Code quality
+name: Testsuite
 
 on:
   push:
@@ -13,9 +13,11 @@ on:
     - cron: "0 3 * * *" # time zone is UTC
 
 jobs:
-  fourc-webviewer-code-check:
-    name: Code check
+  run_pytest:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - name: Checkout repository
@@ -32,13 +34,8 @@ jobs:
         run: |
           conda activate 4c-webviewer
           pip install -e .
-          pip install pre-commit
-      - name: Run code-checks
+      - name: Run pytest
         shell: bash -el {0}
         run: |
           conda activate 4c-webviewer
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            SKIP=no-commit-to-branch pre-commit run --all-files
-          else
-            pre-commit run --all-files
-          fi
+          pytest --color=yes -v
