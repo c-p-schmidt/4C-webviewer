@@ -398,25 +398,3 @@ def get_master_and_linked_material_indices(materials_section):
         "master_mat_indices": master_mat_indices,
         "linked_mat_indices": linked_mat_indices,
     }
-
-
-def safely_parse_string(string):
-    """Safely evaluate a string containing a Python literal expression.
-
-    This function attempts to parse the input string using ast.literal_eval,
-    which safely evaluates strings containing Python literals such as strings,
-    numbers, tuples, lists, dicts, booleans, and None.
-
-    Parameters:
-        string (str): The string to evaluate.
-
-    Returns:
-        The evaluated Python object.
-
-    Raises:
-        ValueError: If the input string is not a valid Python literal.
-    """
-    try:
-        return ast.literal_eval(string)
-    except (ValueError, SyntaxError):
-        raise ValueError("Invalid input for literal_eval")

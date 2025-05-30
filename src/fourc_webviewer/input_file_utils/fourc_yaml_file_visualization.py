@@ -5,12 +5,12 @@ import re
 from pathlib import Path
 
 import lnmmeshio
+import numexpr as ne
 import numpy as np
 import plotly.express as px
 
 from fourc_webviewer.input_file_utils.io_utils import (
     add_fourc_yaml_file_data_to_dis,
-    safely_parse_string,
 )
 
 
@@ -161,14 +161,20 @@ def return_function_from_funct_string(funct_string):
         # replace the used power sign
         funct_string_copy = funct_string_copy.replace("^", "**")
 
+        # replace variables
+        funct_string_copy = (
+            funct_string_copy.replace("x", str(x))
+            .replace("y", str(y))
+            .replace("z", str(z))
+            .replace("t", str(t))
+        )
+
         # for heaviside: np.heaviside takes two arguments -> second argument denotes the function value at the first argument -> we set it by default to 0
         funct_string_copy = re.sub(
             r"heaviside\((.*?)\)", r"heaviside(\1,0)", funct_string_copy
         )  # usage of raw strings, (.*?) is a non greedy capturing, and \1 replaces the captured value
 
-        return safely_parse_string(
-            funct_string_copy
-        )  # this parses string in as a function
+        return ne.evaluate(funct_string_copy)  # this parses string in as a function
 
     return np.frompyfunc(funct_using_eval, 4, 1)
 
