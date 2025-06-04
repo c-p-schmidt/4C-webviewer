@@ -1012,16 +1012,8 @@ class FourCWebServer:
         if (
             edit_mode == self.state.all_edit_modes["view_mode"]
         ):  # after edit mode we are again in view mode
-            self.state.general_sections = convert_string2number(
-                self.state.general_sections
-            )
-            self.state.materials_section = convert_string2number(
-                self.state.materials_section
-            )
-            self.state.dc_sections = convert_string2number(self.state.dc_sections)
-            self.state.result_description_section = convert_string2number(
-                self.state.result_description_section
-            )
+            self.convert_string2num_all_sections()
+
             # for now we don't convert the function section, because it
             # works itself with strings, e.g.
             # 'SYMBOLIC_FUNCTION_OF_SPACE_TIME' is a string even if it
@@ -1034,6 +1026,7 @@ class FourCWebServer:
         """Reaction to change of state.export_mode."""
         # revert export status to "INFO"
         self.state.export_status = self.state.all_export_statuses["info"]
+        self.convert_string2num_all_sections()
 
     """------------------- Controller functions -------------------"""
 
@@ -1110,6 +1103,18 @@ class FourCWebServer:
             self.state.export_status = self.state.all_export_statuses["error"]
 
     """ --- Other helper functions"""
+
+    def convert_string2num_all_sections(self):
+        """Converts string to num wherever possible for all considered
+        sections."""
+        self.state.general_sections = convert_string2number(self.state.general_sections)
+        self.state.materials_section = convert_string2number(
+            self.state.materials_section
+        )
+        self.state.dc_sections = convert_string2number(self.state.dc_sections)
+        self.state.result_description_section = convert_string2number(
+            self.state.result_description_section
+        )
 
     def determine_master_mat_ind_for_current_selection(self):
         """Determines the real master/source material of the currently selected
