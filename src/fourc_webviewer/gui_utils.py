@@ -109,19 +109,36 @@ def _toolbar(server_controller):
     html.Img(
         src="https://raw.githubusercontent.com/4C-multiphysics/4C-webviewer/refs/heads/main/images/4C-logo/negative-white/4C-logo-landscape_negative.svg",
         alt="4C Logo",
-        style="height: 50px; width: auto; filter: invert(1); padding-left: 20px",
+        style="height: 50px; width: auto; filter: invert(1); padding-left: 20px; padding-right: 10px;",
         class_="me-2",
     )
+
+    with vuetify.VTooltip(location="top"):
+        with html.Template(v_slot_activator="{ props }"):
+            with vuetify.VBtn(
+                tag="a",
+                v_bind="{...props, target: '_blank'}",
+                v_tooltip="4C Documentation",
+                href="https://4c-multiphysics.github.io/4C/documentation/index.html",
+                icon=True,
+                rel="noopener noreferrer",
+            ):
+                vuetify.VIcon(
+                    "mdi-book-open-blank-variant-outline",
+                    size=36,
+                    color="#666",
+                )
+        html.Span("4C Documentation")
+
+    vuetify.VSpacer()
 
     vuetify.VToolbarTitle(
         "4C Webviewer",
         tag="h1",
         shrink=True,
         class_="mx-4",
-        style="font-weight: 500;",
+        style="font-weight: 500; padding-right: 10px;",
     )
-
-    vuetify.VSpacer()
 
     vuetify.VFileInput(
         label="Input file",
