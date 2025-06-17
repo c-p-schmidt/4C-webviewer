@@ -161,7 +161,7 @@ referencing==0.36.2
     #   fourcipp
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.3
+requests==2.32.4
     # via pooch
 rich==14.0.0
     # via meshio
