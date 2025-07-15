@@ -13,7 +13,6 @@ aiosignal==1.3.2
 attrs==25.3.0
     # via
     #   aiohttp
-    #   fourcipp
     #   jsonschema
     #   referencing
 certifi==2025.4.26
@@ -27,9 +26,7 @@ contourpy==1.3.2
 cycler==0.12.1
     # via matplotlib
 deprecation==2.1.0
-    # via
-    #   fourcipp
-    #   rapidyaml
+    # via rapidyaml
 distlib==0.3.9
     # via virtualenv
 filelock==3.18.0
@@ -55,9 +52,7 @@ jsonschema==4.23.0
 jsonschema-rs==0.30.0
     # via fourcipp
 jsonschema-specifications==2025.4.1
-    # via
-    #   fourcipp
-    #   jsonschema
+    # via jsonschema
 kiwisolver==1.4.8
     # via matplotlib
 lnmmeshio==5.6.3
@@ -104,14 +99,13 @@ numpy==2.2.5
 packaging==25.0
     # via
     #   deprecation
-    #   fourcipp
     #   matplotlib
     #   plotly
     #   pooch
     #   pytest
 pandas==2.2.3
     # via -r requirements.in
-pillow==11.2.1
+pillow==11.3.0
     # via
     #   matplotlib
     #   pyvista
@@ -158,7 +152,6 @@ rapidyaml==0.9.0
     # via fourcipp
 referencing==0.36.2
     # via
-    #   fourcipp
     #   jsonschema
     #   jsonschema-specifications
 requests==2.32.4
@@ -167,15 +160,12 @@ rich==14.0.0
     # via meshio
 rpds-py==0.24.0
     # via
-    #   fourcipp
     #   jsonschema
     #   referencing
 ruamel-yaml==0.18.10
     # via fourcipp
 ruamel-yaml-clib==0.2.12
-    # via
-    #   fourcipp
-    #   ruamel-yaml
+    # via ruamel-yaml
 scooby==0.10.1
     # via pyvista
 six==1.17.0
@@ -207,7 +197,6 @@ trame-vuetify==3.0.1
     # via -r requirements.in
 typing-extensions==4.13.2
     # via
-    #   fourcipp
     #   python-utils
     #   pyvista
     #   referencing
